@@ -3,6 +3,7 @@ This is a WEB API that works as a microservice within the Toposoid project.
 Toposoid is a knowledge base construction platform.(see [Toposoid　Root Project](https://github.com/toposoid/toposoid.git))
 This microservice provides the ability to identify and match the synonyms of the entered text with the knowledge graph. 
 
+[![Unit Test And Build Image Action](https://github.com/toposoid/toposoid-deduction-unit-synonym-match-web/actions/workflows/action.yml/badge.svg?branch=main)](https://github.com/toposoid/toposoid-deduction-unit-synonym-match-web/actions/workflows/action.yml)
 
 <img width="1208" alt="2021-10-01 20 37 10" src="https://user-images.githubusercontent.com/82787843/135613760-7015f3f6-408a-44a3-babd-729e565697bc.png">
 
