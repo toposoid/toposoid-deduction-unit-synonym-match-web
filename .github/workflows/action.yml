@@ -1,16 +1,18 @@
-name: Unit Test And Build Image Action
+name: Test And Build
 on:
   push:
     branches:
       - main
+      - feature
   workflow_dispatch:
 env:
   PJ_ACTOR: toposoid
   PJ_REPO: toposoid-deduction-unit-synonym-match-web
-  PJ_VERSION: 0.1.0
+  PJ_BRANCH: feature
+  PJ_VERSION: 0.1.1
 jobs:
   unit-test_toposoid-deduction-unit-synonym-match-web:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Clone ${{ env.PJ_REPO }}
         uses: actions/checkout@v2
@@ -18,7 +20,7 @@ jobs:
             repository: ${{ env.PJ_ACTOR }}/${{ env.PJ_REPO }}
       - name: Execute tests
         run: |
-            docker build --tag ${{ env.PJ_REPO }}:${{ env.PJ_VERSION }} -f Dockerfile-workflow .
+            docker build --build-arg TARGET_BRANCH=${{ env.PJ_BRANCH }} --tag ${{ env.PJ_REPO }}:${{ env.PJ_VERSION }} -f Dockerfile-workflow .
             docker-compose -f docker-compose-workflow.yml up -d
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt headerCheck"
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt test:headerCheck"
@@ -40,3 +42,5 @@ jobs:
           context: .
           push: true
           tags: toposoid/${{ env.PJ_REPO }}:${{ env.PJ_VERSION }}
+          build-args: |
+            TARGET_BRANCH=${{ env.PJ_BRANCH }}
