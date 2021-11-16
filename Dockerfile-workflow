@@ -1,14 +1,18 @@
-FROM toposoid/toposoid-core:0.1.0
+FROM toposoid/toposoid-core:0.1.1
 
 WORKDIR /app
-
+ARG TARGET_BRANCH
 ENV DEPLOYMENT=local
 ENV _JAVA_OPTIONS="-Xms2g -Xmx4g"
 
 RUN git clone https://github.com/toposoid/toposoid-deduction-common.git \
 && cd toposoid-deduction-common \
+&& git fetch origin ${TARGET_BRANCH} \
+&& git checkout ${TARGET_BRANCH} \
 && sbt publishLocal \
 && rm -Rf ./target \
 && cd .. \
-&& git clone https://github.com/toposoid/toposoid-deduction-unit-synonym-match-web.git
+&& git clone https://github.com/toposoid/toposoid-deduction-unit-synonym-match-web.git \
+&& git fetch origin ${TARGET_BRANCH} \
+&& git checkout ${TARGET_BRANCH}
 
