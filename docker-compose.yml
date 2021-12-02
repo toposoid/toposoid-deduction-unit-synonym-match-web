@@ -9,7 +9,7 @@ networks:
 
 services:
   toposoid-deduction-unit-synonym-match-web:
-    image: toposoid/toposoid-deduction-unit-synonym-match-web:0.1.1
+    image: toposoid/toposoid-deduction-unit-synonym-match-web:0.1-SNAPSHOT
     tty: true
     environment:
       - GRAPHDB_HOST=172.30.0.2
