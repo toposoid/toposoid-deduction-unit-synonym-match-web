@@ -28,7 +28,7 @@ services:
     depends_on:
       - scala-data-accessor-neo4j-web
   scala-data-accessor-neo4j-web:
-    image: toposoid/scala-data-accessor-neo4j-web:0.1-SNAPSHOT
+    image: toposoid/scala-data-accessor-neo4j-web:0.1-SNAPSHOT-workflow
     environment:
       - GRAPHDB_HOST=172.30.0.2
       - PRIVATE_IP_ADDRESS=172.30.0.3
@@ -41,7 +41,7 @@ services:
     depends_on:
       - neo4j
   toposoid-sentence-parser-japanese-web:
-    image: toposoid/toposoid-sentence-parser-japanese-web:0.1-SNAPSHOT
+    image: toposoid/toposoid-sentence-parser-japanese-web:0.1-SNAPSHOT-workflow
     tty: true
     environment:
       - PRIVATE_IP_ADDRESS=172.30.0.4
@@ -52,7 +52,7 @@ services:
     ports:
       - 9001:9001
   scala-common-nlp-japanese-web:
-    image: toposoid/scala-common-nlp-japanese-web:0.1-SNAPSHOT
+    image: toposoid/scala-common-nlp-japanese-web:0.1-SNAPSHOT-workflow
     tty: true
     environment:
       - PRIVATE_IP_ADDRESS=172.30.0.5
@@ -88,7 +88,7 @@ services:
     ports:
       - 9008:9008
   corenlp:
-    image: toposoid/corenlp:3.4.2
+    image: toposoid/corenlp:3.4.2-action
     networks:
       app_net:
         ipv4_address: 172.30.0.8
