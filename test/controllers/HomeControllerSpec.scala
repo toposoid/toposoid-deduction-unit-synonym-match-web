@@ -33,7 +33,8 @@ class HomeControllerSpec extends PlaySpec with BeforeAndAfter with BeforeAndAfte
 
   override def beforeAll(): Unit = {
     Neo4JAccessor.delete()
-    Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("太郎は秀逸な提案をした。", "{}")))
+    Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}")))
+    Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("Life is so comfortable.","en_US", "{}")))
   }
 
   override def afterAll(): Unit = {
@@ -42,15 +43,15 @@ class HomeControllerSpec extends PlaySpec with BeforeAndAfter with BeforeAndAfte
 
   val controller: HomeController = inject[HomeController]
 
-  "The specification" should {
+  "The specification1" should {
     "returns an appropriate response" in {
       val json = """{
                    |    "analyzedSentenceObjects": [
                    |        {
                    |            "nodeMap": {
-                   |                "21687cd8-437b-48c6-bd21-210f67cc5e07-3": {
-                   |                    "nodeId": "21687cd8-437b-48c6-bd21-210f67cc5e07-3",
-                   |                    "propositionId": "21687cd8-437b-48c6-bd21-210f67cc5e07",
+                   |                "781d77ce-746f-4d86-8392-dacae3f6c9d2-3": {
+                   |                    "nodeId": "781d77ce-746f-4d86-8392-dacae3f6c9d2-3",
+                   |                    "propositionId": "781d77ce-746f-4d86-8392-dacae3f6c9d2",
                    |                    "currentId": 3,
                    |                    "parentId": -1,
                    |                    "isMainSection": true,
@@ -75,16 +76,17 @@ class HomeControllerSpec extends PlaySpec with BeforeAndAfter with BeforeAndAfte
                    |                    "modalityType": "-",
                    |                    "logicType": "-",
                    |                    "nodeType": 1,
+                   |                    "lang": "ja_JP",
                    |                    "extentText": "{}"
                    |                },
-                   |                "21687cd8-437b-48c6-bd21-210f67cc5e07-2": {
-                   |                    "nodeId": "21687cd8-437b-48c6-bd21-210f67cc5e07-2",
-                   |                    "propositionId": "21687cd8-437b-48c6-bd21-210f67cc5e07",
+                   |                "781d77ce-746f-4d86-8392-dacae3f6c9d2-2": {
+                   |                    "nodeId": "781d77ce-746f-4d86-8392-dacae3f6c9d2-2",
+                   |                    "propositionId": "781d77ce-746f-4d86-8392-dacae3f6c9d2",
                    |                    "currentId": 2,
                    |                    "parentId": 3,
                    |                    "isMainSection": false,
-                   |                    "surface": "発案を",
-                   |                    "normalizedName": "発案",
+                   |                    "surface": "提案を",
+                   |                    "normalizedName": "提案",
                    |                    "dependType": "D",
                    |                    "caseType": "ヲ格",
                    |                    "namedEntity": "",
@@ -92,23 +94,24 @@ class HomeControllerSpec extends PlaySpec with BeforeAndAfter with BeforeAndAfte
                    |                        "": {}
                    |                    },
                    |                    "categories": {
-                   |                        "発案": "抽象物"
+                   |                        "提案": "抽象物"
                    |                    },
                    |                    "domains": {
                    |                        "": ""
                    |                    },
                    |                    "isDenial": false,
                    |                    "isConditionalConnection": false,
-                   |                    "normalizedNameYomi": "はつあん",
-                   |                    "surfaceYomi": "はつあんを",
+                   |                    "normalizedNameYomi": "ていあん",
+                   |                    "surfaceYomi": "ていあんを",
                    |                    "modalityType": "-",
                    |                    "logicType": "-",
                    |                    "nodeType": 1,
+                   |                    "lang": "ja_JP",
                    |                    "extentText": "{}"
                    |                },
-                   |                "21687cd8-437b-48c6-bd21-210f67cc5e07-1": {
-                   |                    "nodeId": "21687cd8-437b-48c6-bd21-210f67cc5e07-1",
-                   |                    "propositionId": "21687cd8-437b-48c6-bd21-210f67cc5e07",
+                   |                "781d77ce-746f-4d86-8392-dacae3f6c9d2-1": {
+                   |                    "nodeId": "781d77ce-746f-4d86-8392-dacae3f6c9d2-1",
+                   |                    "propositionId": "781d77ce-746f-4d86-8392-dacae3f6c9d2",
                    |                    "currentId": 1,
                    |                    "parentId": 2,
                    |                    "isMainSection": false,
@@ -133,11 +136,12 @@ class HomeControllerSpec extends PlaySpec with BeforeAndAfter with BeforeAndAfte
                    |                    "modalityType": "-",
                    |                    "logicType": "-",
                    |                    "nodeType": 1,
+                   |                    "lang": "ja_JP",
                    |                    "extentText": "{}"
                    |                },
-                   |                "21687cd8-437b-48c6-bd21-210f67cc5e07-0": {
-                   |                    "nodeId": "21687cd8-437b-48c6-bd21-210f67cc5e07-0",
-                   |                    "propositionId": "21687cd8-437b-48c6-bd21-210f67cc5e07",
+                   |                "781d77ce-746f-4d86-8392-dacae3f6c9d2-0": {
+                   |                    "nodeId": "781d77ce-746f-4d86-8392-dacae3f6c9d2-0",
+                   |                    "propositionId": "781d77ce-746f-4d86-8392-dacae3f6c9d2",
                    |                    "currentId": 0,
                    |                    "parentId": 3,
                    |                    "isMainSection": false,
@@ -162,30 +166,34 @@ class HomeControllerSpec extends PlaySpec with BeforeAndAfter with BeforeAndAfte
                    |                    "modalityType": "-",
                    |                    "logicType": "-",
                    |                    "nodeType": 1,
+                   |                    "lang": "ja_JP",
                    |                    "extentText": "{}"
                    |                }
                    |            },
                    |            "edgeList": [
                    |                {
-                   |                    "sourceId": "21687cd8-437b-48c6-bd21-210f67cc5e07-2",
-                   |                    "destinationId": "21687cd8-437b-48c6-bd21-210f67cc5e07-3",
+                   |                    "sourceId": "781d77ce-746f-4d86-8392-dacae3f6c9d2-2",
+                   |                    "destinationId": "781d77ce-746f-4d86-8392-dacae3f6c9d2-3",
                    |                    "caseStr": "ヲ格",
                    |                    "dependType": "D",
-                   |                    "logicType": "-"
+                   |                    "logicType": "-",
+                   |                    "lang": "ja_JP"
                    |                },
                    |                {
-                   |                    "sourceId": "21687cd8-437b-48c6-bd21-210f67cc5e07-1",
-                   |                    "destinationId": "21687cd8-437b-48c6-bd21-210f67cc5e07-2",
+                   |                    "sourceId": "781d77ce-746f-4d86-8392-dacae3f6c9d2-1",
+                   |                    "destinationId": "781d77ce-746f-4d86-8392-dacae3f6c9d2-2",
                    |                    "caseStr": "連格",
                    |                    "dependType": "D",
-                   |                    "logicType": "-"
+                   |                    "logicType": "-",
+                   |                    "lang": "ja_JP"
                    |                },
                    |                {
-                   |                    "sourceId": "21687cd8-437b-48c6-bd21-210f67cc5e07-0",
-                   |                    "destinationId": "21687cd8-437b-48c6-bd21-210f67cc5e07-3",
+                   |                    "sourceId": "781d77ce-746f-4d86-8392-dacae3f6c9d2-0",
+                   |                    "destinationId": "781d77ce-746f-4d86-8392-dacae3f6c9d2-3",
                    |                    "caseStr": "未格",
                    |                    "dependType": "D",
-                   |                    "logicType": "-"
+                   |                    "logicType": "-",
+                   |                    "lang": "ja_JP"
                    |                }
                    |            ],
                    |            "sentenceType": 1,
@@ -217,4 +225,206 @@ class HomeControllerSpec extends PlaySpec with BeforeAndAfter with BeforeAndAfte
       assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("1").get.status).size == 1)
     }
   }
+
+  "The specification2" should {
+    "returns an appropriate response" in {
+      val json = """{
+                   |    "analyzedSentenceObjects": [
+                   |        {
+                   |            "nodeMap": {
+                   |                "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a-0": {
+                   |                    "nodeId": "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a-0",
+                   |                    "propositionId": "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a",
+                   |                    "currentId": 0,
+                   |                    "parentId": 1,
+                   |                    "isMainSection": true,
+                   |                    "surface": "Living",
+                   |                    "normalizedName": "living",
+                   |                    "dependType": "-",
+                   |                    "caseType": "nsubj",
+                   |                    "namedEntity": "",
+                   |                    "rangeExpressions": {
+                   |                        "": {}
+                   |                    },
+                   |                    "categories": {},
+                   |                    "domains": {},
+                   |                    "isDenial": false,
+                   |                    "isConditionalConnection": false,
+                   |                    "normalizedNameYomi": "",
+                   |                    "surfaceYomi": "",
+                   |                    "modalityType": "-",
+                   |                    "logicType": "-",
+                   |                    "nodeType": 1,
+                   |                    "lang": "en_US",
+                   |                    "extentText": "{}"
+                   |                },
+                   |                "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a-1": {
+                   |                    "nodeId": "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a-1",
+                   |                    "propositionId": "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a",
+                   |                    "currentId": 1,
+                   |                    "parentId": 1,
+                   |                    "isMainSection": true,
+                   |                    "surface": "is",
+                   |                    "normalizedName": "be",
+                   |                    "dependType": "-",
+                   |                    "caseType": "ROOT",
+                   |                    "namedEntity": "",
+                   |                    "rangeExpressions": {
+                   |                        "": {}
+                   |                    },
+                   |                    "categories": {},
+                   |                    "domains": {},
+                   |                    "isDenial": false,
+                   |                    "isConditionalConnection": false,
+                   |                    "normalizedNameYomi": "",
+                   |                    "surfaceYomi": "",
+                   |                    "modalityType": "-",
+                   |                    "logicType": "-",
+                   |                    "nodeType": 1,
+                   |                    "lang": "en_US",
+                   |                    "extentText": "{}"
+                   |                },
+                   |                "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a-2": {
+                   |                    "nodeId": "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a-2",
+                   |                    "propositionId": "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a",
+                   |                    "currentId": 2,
+                   |                    "parentId": 3,
+                   |                    "isMainSection": true,
+                   |                    "surface": "so",
+                   |                    "normalizedName": "so",
+                   |                    "dependType": "-",
+                   |                    "caseType": "advmod",
+                   |                    "namedEntity": "",
+                   |                    "rangeExpressions": {
+                   |                        "": {}
+                   |                    },
+                   |                    "categories": {},
+                   |                    "domains": {},
+                   |                    "isDenial": false,
+                   |                    "isConditionalConnection": false,
+                   |                    "normalizedNameYomi": "",
+                   |                    "surfaceYomi": "",
+                   |                    "modalityType": "-",
+                   |                    "logicType": "-",
+                   |                    "nodeType": 1,
+                   |                    "lang": "en_US",
+                   |                    "extentText": "{}"
+                   |                },
+                   |                "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a-3": {
+                   |                    "nodeId": "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a-3",
+                   |                    "propositionId": "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a",
+                   |                    "currentId": 3,
+                   |                    "parentId": 1,
+                   |                    "isMainSection": true,
+                   |                    "surface": "comfortable",
+                   |                    "normalizedName": "comfortable",
+                   |                    "dependType": "-",
+                   |                    "caseType": "acomp",
+                   |                    "namedEntity": "",
+                   |                    "rangeExpressions": {
+                   |                        "": {}
+                   |                    },
+                   |                    "categories": {},
+                   |                    "domains": {},
+                   |                    "isDenial": false,
+                   |                    "isConditionalConnection": false,
+                   |                    "normalizedNameYomi": "",
+                   |                    "surfaceYomi": "",
+                   |                    "modalityType": "-",
+                   |                    "logicType": "-",
+                   |                    "nodeType": 1,
+                   |                    "lang": "en_US",
+                   |                    "extentText": "{}"
+                   |                },
+                   |                "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a-4": {
+                   |                    "nodeId": "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a-4",
+                   |                    "propositionId": "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a",
+                   |                    "currentId": 4,
+                   |                    "parentId": 1,
+                   |                    "isMainSection": true,
+                   |                    "surface": ".",
+                   |                    "normalizedName": ".",
+                   |                    "dependType": "-",
+                   |                    "caseType": "punct",
+                   |                    "namedEntity": "",
+                   |                    "rangeExpressions": {
+                   |                        "": {}
+                   |                    },
+                   |                    "categories": {},
+                   |                    "domains": {},
+                   |                    "isDenial": false,
+                   |                    "isConditionalConnection": false,
+                   |                    "normalizedNameYomi": "",
+                   |                    "surfaceYomi": "",
+                   |                    "modalityType": "-",
+                   |                    "logicType": "-",
+                   |                    "nodeType": 1,
+                   |                    "lang": "en_US",
+                   |                    "extentText": "{}"
+                   |                }
+                   |            },
+                   |            "edgeList": [
+                   |                {
+                   |                    "sourceId": "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a-0",
+                   |                    "destinationId": "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a-1",
+                   |                    "caseStr": "nsubj",
+                   |                    "dependType": "-",
+                   |                    "logicType": "-",
+                   |                    "lang": "en_US"
+                   |                },
+                   |                {
+                   |                    "sourceId": "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a-2",
+                   |                    "destinationId": "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a-3",
+                   |                    "caseStr": "advmod",
+                   |                    "dependType": "-",
+                   |                    "logicType": "-",
+                   |                    "lang": "en_US"
+                   |                },
+                   |                {
+                   |                    "sourceId": "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a-3",
+                   |                    "destinationId": "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a-1",
+                   |                    "caseStr": "acomp",
+                   |                    "dependType": "-",
+                   |                    "logicType": "-",
+                   |                    "lang": "en_US"
+                   |                },
+                   |                {
+                   |                    "sourceId": "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a-4",
+                   |                    "destinationId": "a8ab4e4c-8ec3-448e-ad4c-1c41ee1f7b6a-1",
+                   |                    "caseStr": "punct",
+                   |                    "dependType": "-",
+                   |                    "logicType": "-",
+                   |                    "lang": "en_US"
+                   |                }
+                   |            ],
+                   |            "sentenceType": 1,
+                   |            "deductionResultMap": {
+                   |                "0": {
+                   |                    "status": false,
+                   |                    "matchedPropositionIds": [],
+                   |                    "deductionUnit": ""
+                   |                },
+                   |                "1": {
+                   |                    "status": false,
+                   |                    "matchedPropositionIds": [],
+                   |                    "deductionUnit": ""
+                   |                }
+                   |            }
+                   |        }
+                   |    ]
+                   |}""".stripMargin
+      val fr = FakeRequest(POST, "/execute")
+        .withHeaders("Content-type" -> "application/json")
+        .withJsonBody(Json.parse(json))
+
+      val result = call(controller.execute(), fr)
+      status(result) mustBe OK
+      contentType(result) mustBe Some("application/json")
+
+      val jsonResult: String = contentAsJson(result).toString()
+      val analyzedSentenceObjects: AnalyzedSentenceObjects = Json.parse(jsonResult).as[AnalyzedSentenceObjects]
+      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("1").get.status).size == 1)
+    }
+  }
+
 }
