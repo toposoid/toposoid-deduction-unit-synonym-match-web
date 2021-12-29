@@ -88,7 +88,7 @@ services:
     ports:
       - 9008:9008
   corenlp:
-    image: toposoid/corenlp:3.4.2-action
+    image: toposoid/corenlp:3.4.2-workflow
     networks:
       app_net:
         ipv4_address: 172.30.0.8
