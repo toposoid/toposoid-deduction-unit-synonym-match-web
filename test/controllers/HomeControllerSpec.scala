@@ -33,7 +33,7 @@ class HomeControllerSpec extends PlaySpec with BeforeAndAfter with BeforeAndAfte
 
   override def beforeAll(): Unit = {
     Neo4JAccessor.delete()
-    Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}")))
+    Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("太郎は秀逸な発案をした。","ja_JP", "{}")))
     Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("Life is so comfortable.","en_US", "{}")))
   }
 
