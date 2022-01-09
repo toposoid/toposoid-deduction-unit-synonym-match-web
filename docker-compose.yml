@@ -26,7 +26,7 @@ services:
     image: toposoid/scala-data-accessor-neo4j-web:0.2
     environment:
       - GRAPHDB_HOST=172.30.0.2
-      - PRIVATE_IP_ADDRESS=localhost
+      - PRIVATE_IP_ADDRESS=172.30.0.3
       - PLAY_HTTP_PORT=9005
     networks:
       app_net:
@@ -46,7 +46,7 @@ services:
       - 7687:7687
     networks:
       app_net:
-        ipv4_address: 172.30.0.２
+        ipv4_address: 172.30.0.2
 
 
 

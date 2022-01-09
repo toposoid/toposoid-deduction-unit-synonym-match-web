@@ -26,14 +26,14 @@ curl -X POST -H "Content-Type: application/json" -d '{
     "analyzedSentenceObjects": [
         {
             "nodeMap": {
-                "21687cd8-437b-48c6-bd21-210f67cc5e07-3": {
-                    "nodeId": "21687cd8-437b-48c6-bd21-210f67cc5e07-3",
-                    "propositionId": "21687cd8-437b-48c6-bd21-210f67cc5e07",
-                    "currentId": 3,
+                "75f3c079-848e-4f88-8155-4f198b2b68e2-2": {
+                    "nodeId": "75f3c079-848e-4f88-8155-4f198b2b68e2-2",
+                    "propositionId": "75f3c079-848e-4f88-8155-4f198b2b68e2",
+                    "currentId": 2,
                     "parentId": -1,
                     "isMainSection": true,
-                    "surface": "した。",
-                    "normalizedName": "する",
+                    "surface": "易し。",
+                    "normalizedName": "易い",
                     "dependType": "D",
                     "caseType": "文末",
                     "namedEntity": "",
@@ -48,52 +48,54 @@ curl -X POST -H "Content-Type: application/json" -d '{
                     },
                     "isDenial": false,
                     "isConditionalConnection": false,
-                    "normalizedNameYomi": "する",
-                    "surfaceYomi": "した。",
+                    "normalizedNameYomi": "やすい?易しい",
+                    "surfaceYomi": "やすし。",
                     "modalityType": "-",
                     "logicType": "-",
                     "nodeType": 1,
+                    "lang": "ja_JP",
                     "extentText": "{}"
                 },
-                "21687cd8-437b-48c6-bd21-210f67cc5e07-2": {
-                    "nodeId": "21687cd8-437b-48c6-bd21-210f67cc5e07-2",
-                    "propositionId": "21687cd8-437b-48c6-bd21-210f67cc5e07",
-                    "currentId": 2,
-                    "parentId": 3,
-                    "isMainSection": false,
-                    "surface": "発案を",
-                    "normalizedName": "発案",
-                    "dependType": "D",
-                    "caseType": "ヲ格",
-                    "namedEntity": "",
-                    "rangeExpressions": {
-                        "": {}
-                    },
-                    "categories": {
-                        "発案": "抽象物"
-                    },
-                    "domains": {
-                        "": ""
-                    },
-                    "isDenial": false,
-                    "isConditionalConnection": false,
-                    "normalizedNameYomi": "はつあん",
-                    "surfaceYomi": "はつあんを",
-                    "modalityType": "-",
-                    "logicType": "-",
-                    "nodeType": 1,
-                    "extentText": "{}"
-                },
-                "21687cd8-437b-48c6-bd21-210f67cc5e07-1": {
-                    "nodeId": "21687cd8-437b-48c6-bd21-210f67cc5e07-1",
-                    "propositionId": "21687cd8-437b-48c6-bd21-210f67cc5e07",
+                "75f3c079-848e-4f88-8155-4f198b2b68e2-1": {
+                    "nodeId": "75f3c079-848e-4f88-8155-4f198b2b68e2-1",
+                    "propositionId": "75f3c079-848e-4f88-8155-4f198b2b68e2",
                     "currentId": 1,
                     "parentId": 2,
                     "isMainSection": false,
-                    "surface": "秀逸な",
-                    "normalizedName": "秀逸だ",
+                    "surface": "産むが",
+                    "normalizedName": "産む",
                     "dependType": "D",
-                    "caseType": "連格",
+                    "caseType": "連用",
+                    "namedEntity": "",
+                    "rangeExpressions": {
+                        "": {}
+                    },
+                    "categories": {
+                        "": ""
+                    },
+                    "domains": {
+                        "産む": "家庭・暮らし"
+                    },
+                    "isDenial": false,
+                    "isConditionalConnection": false,
+                    "normalizedNameYomi": "うむ",
+                    "surfaceYomi": "うむが",
+                    "modalityType": "-",
+                    "logicType": "-",
+                    "nodeType": 1,
+                    "lang": "ja_JP",
+                    "extentText": "{}"
+                },
+                "75f3c079-848e-4f88-8155-4f198b2b68e2-0": {
+                    "nodeId": "75f3c079-848e-4f88-8155-4f198b2b68e2-0",
+                    "propositionId": "75f3c079-848e-4f88-8155-4f198b2b68e2",
+                    "currentId": 0,
+                    "parentId": 1,
+                    "isMainSection": false,
+                    "surface": "案ずるより",
+                    "normalizedName": "案ずる",
+                    "dependType": "D",
+                    "caseType": "連用",
                     "namedEntity": "",
                     "rangeExpressions": {
                         "": {}
@@ -106,64 +108,31 @@ curl -X POST -H "Content-Type: application/json" -d '{
                     },
                     "isDenial": false,
                     "isConditionalConnection": false,
-                    "normalizedNameYomi": "しゅういつだ",
-                    "surfaceYomi": "しゅういつな",
+                    "normalizedNameYomi": "あんずる",
+                    "surfaceYomi": "あんずるより",
                     "modalityType": "-",
                     "logicType": "-",
                     "nodeType": 1,
-                    "extentText": "{}"
-                },
-                "21687cd8-437b-48c6-bd21-210f67cc5e07-0": {
-                    "nodeId": "21687cd8-437b-48c6-bd21-210f67cc5e07-0",
-                    "propositionId": "21687cd8-437b-48c6-bd21-210f67cc5e07",
-                    "currentId": 0,
-                    "parentId": 3,
-                    "isMainSection": false,
-                    "surface": "太郎は",
-                    "normalizedName": "太郎",
-                    "dependType": "D",
-                    "caseType": "未格",
-                    "namedEntity": "PERSON:太郎",
-                    "rangeExpressions": {
-                        "": {}
-                    },
-                    "categories": {
-                        "": ""
-                    },
-                    "domains": {
-                        "": ""
-                    },
-                    "isDenial": false,
-                    "isConditionalConnection": false,
-                    "normalizedNameYomi": "たろう",
-                    "surfaceYomi": "たろうは",
-                    "modalityType": "-",
-                    "logicType": "-",
-                    "nodeType": 1,
+                    "lang": "ja_JP",
                     "extentText": "{}"
                 }
             },
             "edgeList": [
                 {
-                    "sourceId": "21687cd8-437b-48c6-bd21-210f67cc5e07-2",
-                    "destinationId": "21687cd8-437b-48c6-bd21-210f67cc5e07-3",
-                    "caseStr": "ヲ格",
+                    "sourceId": "75f3c079-848e-4f88-8155-4f198b2b68e2-1",
+                    "destinationId": "75f3c079-848e-4f88-8155-4f198b2b68e2-2",
+                    "caseStr": "連用",
                     "dependType": "D",
-                    "logicType": "-"
+                    "logicType": "-",
+                    "lang": "ja_JP"
                 },
                 {
-                    "sourceId": "21687cd8-437b-48c6-bd21-210f67cc5e07-1",
-                    "destinationId": "21687cd8-437b-48c6-bd21-210f67cc5e07-2",
-                    "caseStr": "連格",
+                    "sourceId": "75f3c079-848e-4f88-8155-4f198b2b68e2-0",
+                    "destinationId": "75f3c079-848e-4f88-8155-4f198b2b68e2-1",
+                    "caseStr": "連用",
                     "dependType": "D",
-                    "logicType": "-"
-                },
-                {
-                    "sourceId": "21687cd8-437b-48c6-bd21-210f67cc5e07-0",
-                    "destinationId": "21687cd8-437b-48c6-bd21-210f67cc5e07-3",
-                    "caseStr": "未格",
-                    "dependType": "D",
-                    "logicType": "-"
+                    "logicType": "-",
+                    "lang": "ja_JP"
                 }
             ],
             "sentenceType": 1,
