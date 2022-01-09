@@ -29,11 +29,11 @@ import play.api.libs.json.Json
 import play.api.test.Helpers.{POST, contentAsString, contentType, defaultAwaitTimeout, status, _}
 import play.api.test.{FakeRequest, _}
 
-class HomeControllerSpec extends PlaySpec with BeforeAndAfter with BeforeAndAfterAll with GuiceOneAppPerSuite with Injecting {
+class HomeControllerSpecJapanese extends PlaySpec with BeforeAndAfter with BeforeAndAfterAll with GuiceOneAppPerSuite with Injecting {
 
   override def beforeAll(): Unit = {
     Neo4JAccessor.delete()
-    Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("太郎は秀逸な提案をした。", "{}")))
+    Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("太郎は秀逸な発案をした。","ja_JP", "{}")))
   }
 
   override def afterAll(): Unit = {
@@ -42,15 +42,15 @@ class HomeControllerSpec extends PlaySpec with BeforeAndAfter with BeforeAndAfte
 
   val controller: HomeController = inject[HomeController]
 
-  "The specification" should {
+  "The specification1" should {
     "returns an appropriate response" in {
       val json = """{
                    |    "analyzedSentenceObjects": [
                    |        {
                    |            "nodeMap": {
-                   |                "21687cd8-437b-48c6-bd21-210f67cc5e07-3": {
-                   |                    "nodeId": "21687cd8-437b-48c6-bd21-210f67cc5e07-3",
-                   |                    "propositionId": "21687cd8-437b-48c6-bd21-210f67cc5e07",
+                   |                "781d77ce-746f-4d86-8392-dacae3f6c9d2-3": {
+                   |                    "nodeId": "781d77ce-746f-4d86-8392-dacae3f6c9d2-3",
+                   |                    "propositionId": "781d77ce-746f-4d86-8392-dacae3f6c9d2",
                    |                    "currentId": 3,
                    |                    "parentId": -1,
                    |                    "isMainSection": true,
@@ -75,16 +75,17 @@ class HomeControllerSpec extends PlaySpec with BeforeAndAfter with BeforeAndAfte
                    |                    "modalityType": "-",
                    |                    "logicType": "-",
                    |                    "nodeType": 1,
+                   |                    "lang": "ja_JP",
                    |                    "extentText": "{}"
                    |                },
-                   |                "21687cd8-437b-48c6-bd21-210f67cc5e07-2": {
-                   |                    "nodeId": "21687cd8-437b-48c6-bd21-210f67cc5e07-2",
-                   |                    "propositionId": "21687cd8-437b-48c6-bd21-210f67cc5e07",
+                   |                "781d77ce-746f-4d86-8392-dacae3f6c9d2-2": {
+                   |                    "nodeId": "781d77ce-746f-4d86-8392-dacae3f6c9d2-2",
+                   |                    "propositionId": "781d77ce-746f-4d86-8392-dacae3f6c9d2",
                    |                    "currentId": 2,
                    |                    "parentId": 3,
                    |                    "isMainSection": false,
-                   |                    "surface": "発案を",
-                   |                    "normalizedName": "発案",
+                   |                    "surface": "提案を",
+                   |                    "normalizedName": "提案",
                    |                    "dependType": "D",
                    |                    "caseType": "ヲ格",
                    |                    "namedEntity": "",
@@ -92,23 +93,24 @@ class HomeControllerSpec extends PlaySpec with BeforeAndAfter with BeforeAndAfte
                    |                        "": {}
                    |                    },
                    |                    "categories": {
-                   |                        "発案": "抽象物"
+                   |                        "提案": "抽象物"
                    |                    },
                    |                    "domains": {
                    |                        "": ""
                    |                    },
                    |                    "isDenial": false,
                    |                    "isConditionalConnection": false,
-                   |                    "normalizedNameYomi": "はつあん",
-                   |                    "surfaceYomi": "はつあんを",
+                   |                    "normalizedNameYomi": "ていあん",
+                   |                    "surfaceYomi": "ていあんを",
                    |                    "modalityType": "-",
                    |                    "logicType": "-",
                    |                    "nodeType": 1,
+                   |                    "lang": "ja_JP",
                    |                    "extentText": "{}"
                    |                },
-                   |                "21687cd8-437b-48c6-bd21-210f67cc5e07-1": {
-                   |                    "nodeId": "21687cd8-437b-48c6-bd21-210f67cc5e07-1",
-                   |                    "propositionId": "21687cd8-437b-48c6-bd21-210f67cc5e07",
+                   |                "781d77ce-746f-4d86-8392-dacae3f6c9d2-1": {
+                   |                    "nodeId": "781d77ce-746f-4d86-8392-dacae3f6c9d2-1",
+                   |                    "propositionId": "781d77ce-746f-4d86-8392-dacae3f6c9d2",
                    |                    "currentId": 1,
                    |                    "parentId": 2,
                    |                    "isMainSection": false,
@@ -133,11 +135,12 @@ class HomeControllerSpec extends PlaySpec with BeforeAndAfter with BeforeAndAfte
                    |                    "modalityType": "-",
                    |                    "logicType": "-",
                    |                    "nodeType": 1,
+                   |                    "lang": "ja_JP",
                    |                    "extentText": "{}"
                    |                },
-                   |                "21687cd8-437b-48c6-bd21-210f67cc5e07-0": {
-                   |                    "nodeId": "21687cd8-437b-48c6-bd21-210f67cc5e07-0",
-                   |                    "propositionId": "21687cd8-437b-48c6-bd21-210f67cc5e07",
+                   |                "781d77ce-746f-4d86-8392-dacae3f6c9d2-0": {
+                   |                    "nodeId": "781d77ce-746f-4d86-8392-dacae3f6c9d2-0",
+                   |                    "propositionId": "781d77ce-746f-4d86-8392-dacae3f6c9d2",
                    |                    "currentId": 0,
                    |                    "parentId": 3,
                    |                    "isMainSection": false,
@@ -162,30 +165,34 @@ class HomeControllerSpec extends PlaySpec with BeforeAndAfter with BeforeAndAfte
                    |                    "modalityType": "-",
                    |                    "logicType": "-",
                    |                    "nodeType": 1,
+                   |                    "lang": "ja_JP",
                    |                    "extentText": "{}"
                    |                }
                    |            },
                    |            "edgeList": [
                    |                {
-                   |                    "sourceId": "21687cd8-437b-48c6-bd21-210f67cc5e07-2",
-                   |                    "destinationId": "21687cd8-437b-48c6-bd21-210f67cc5e07-3",
+                   |                    "sourceId": "781d77ce-746f-4d86-8392-dacae3f6c9d2-2",
+                   |                    "destinationId": "781d77ce-746f-4d86-8392-dacae3f6c9d2-3",
                    |                    "caseStr": "ヲ格",
                    |                    "dependType": "D",
-                   |                    "logicType": "-"
+                   |                    "logicType": "-",
+                   |                    "lang": "ja_JP"
                    |                },
                    |                {
-                   |                    "sourceId": "21687cd8-437b-48c6-bd21-210f67cc5e07-1",
-                   |                    "destinationId": "21687cd8-437b-48c6-bd21-210f67cc5e07-2",
+                   |                    "sourceId": "781d77ce-746f-4d86-8392-dacae3f6c9d2-1",
+                   |                    "destinationId": "781d77ce-746f-4d86-8392-dacae3f6c9d2-2",
                    |                    "caseStr": "連格",
                    |                    "dependType": "D",
-                   |                    "logicType": "-"
+                   |                    "logicType": "-",
+                   |                    "lang": "ja_JP"
                    |                },
                    |                {
-                   |                    "sourceId": "21687cd8-437b-48c6-bd21-210f67cc5e07-0",
-                   |                    "destinationId": "21687cd8-437b-48c6-bd21-210f67cc5e07-3",
+                   |                    "sourceId": "781d77ce-746f-4d86-8392-dacae3f6c9d2-0",
+                   |                    "destinationId": "781d77ce-746f-4d86-8392-dacae3f6c9d2-3",
                    |                    "caseStr": "未格",
                    |                    "dependType": "D",
-                   |                    "logicType": "-"
+                   |                    "logicType": "-",
+                   |                    "lang": "ja_JP"
                    |                }
                    |            ],
                    |            "sentenceType": 1,
@@ -217,4 +224,5 @@ class HomeControllerSpec extends PlaySpec with BeforeAndAfter with BeforeAndAfte
       assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("1").get.status).size == 1)
     }
   }
+
 }
