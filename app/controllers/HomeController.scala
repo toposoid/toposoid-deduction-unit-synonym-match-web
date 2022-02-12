@@ -19,17 +19,16 @@ package controllers
 
 import com.ideal.linked.toposoid.protocol.model.base.{AnalyzedSentenceObject, AnalyzedSentenceObjects, DeductionResult}
 import com.ideal.linked.toposoid.protocol.model.neo4j.{Neo4jRecodeUnit, Neo4jRecordMap, Neo4jRecords}
-import com.ideal.linked.toposoid.common.{PREMISE, ToposoidUtils}
+import com.ideal.linked.toposoid.common.{CLAIM, PREMISE, ToposoidUtils}
 import com.typesafe.scalalogging.LazyLogging
 import com.ideal.linked.toposoid.deduction.common.FacadeForAccessNeo4J.getCypherQueryResult
-import com.ideal.linked.toposoid.knowledgebase.model.KnowledgeBaseNode
+import com.ideal.linked.toposoid.knowledgebase.model.{KnowledgeBaseEdge, KnowledgeBaseNode}
 
 import javax.inject._
 import play.api._
 import play.api.libs.json.Json
 import play.api.mvc._
 
-import scala.util.control.Breaks
 import scala.util.{Failure, Success, Try}
 
 sealed abstract class RelationMatchState(val index: Int)
@@ -71,45 +70,53 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
      */
     private def analyze(aso:AnalyzedSentenceObject): AnalyzedSentenceObject = Try{
 
-      var propositionIds = List.empty[String]
-      var searchResults= List.empty[List[Neo4jRecordMap]]
-      val b = new Breaks
-      b.breakable{
-        for(edge <- aso.edgeList) {
-          val sourceKey = edge.sourceId
-          val targetKey = edge.destinationId
-          val sourceNode = aso.nodeMap.get(sourceKey).getOrElse().asInstanceOf[KnowledgeBaseNode]
-          val destinationNode = aso.nodeMap.get(targetKey).getOrElse().asInstanceOf[KnowledgeBaseNode]
-          val tmpList  = searchMatchRelation(sourceNode, destinationNode, edge.caseStr, aso.sentenceType)
-          //もし一回でも空のリストが返されたらこれ以上分析しても無駄なのでループを抜ける
-          if(tmpList._1.size == 0){
-            b.break()
-          }else{
-            propositionIds = propositionIds ++ tmpList._1
-            searchResults = searchResults ++ tmpList._2
-          }
-        }
+      val (searchResults, propositionIds) = aso.edgeList.foldLeft((List.empty[List[Neo4jRecordMap]], List.empty[String])){
+        (acc, x) => analyzeGraphKnowledge(x, aso.nodeMap, aso.sentenceType, acc)
       }
 
-      if(propositionIds.size < aso.edgeList.size){
-        return aso
-      }else{
-        //一番頻度の高いaxiomIdをピックアップ
-        val propositionIdHavingMaxFreq = propositionIds.groupBy(identity).mapValues(_.size).maxBy(_._2)._1
-        logger.debug(propositionIdHavingMaxFreq)
-        //このaxiomIdを持つ検索結果の数とエッジの数が等しければ厳格に一致するとする。部分一致ではなくなる。
-        val selectedList =  searchResults.filter(existALlPropositionIdEqualId(propositionIdHavingMaxFreq, _))
-        if(selectedList.size == aso.edgeList.size){
-          val deductionResult:DeductionResult = new DeductionResult(true, List(propositionIdHavingMaxFreq), "synonym-match")
-          val updateDeductionResultMap = aso.deductionResultMap.updated(aso.sentenceType.toString, deductionResult)
-          return new AnalyzedSentenceObject(aso.nodeMap, aso.edgeList, PREMISE.index, updateDeductionResultMap)
-        }
-      }
-      return aso
+      if(propositionIds.size < aso.edgeList.size) return aso
+      //Pick up the most frequent propositionId
+      val maxFreqSize = propositionIds.groupBy(identity).mapValues(_.size).maxBy(_._2)._2
+      val propositionIdsHavingMaxFreq:List[String] = propositionIds.groupBy(identity).mapValues(_.size).filter(_._2 == maxFreqSize).map(_._1).toList
+      logger.debug(propositionIdsHavingMaxFreq.toString())
+      //If the number of search results with this positionId and the number of edges are equal,
+      //it is assumed that they match exactly. It is no longer a partial match.
+      val selectedPropositionIds =  propositionIdsHavingMaxFreq.filter(x => searchResults.filter(y =>  existALlPropositionIdEqualId(x, y)).size ==  aso.edgeList.size)
+      val deductionResult:DeductionResult = new DeductionResult(true, selectedPropositionIds, "synonym-match")
+      val updateDeductionResultMap = aso.deductionResultMap.updated(aso.sentenceType.toString, deductionResult)
+      AnalyzedSentenceObject(aso.nodeMap, aso.edgeList, aso.sentenceType, updateDeductionResultMap)
 
     }match {
+      case Success(s) => s
       case Failure(e) => throw e
     }
+
+
+  /**
+   * This function is a sub-function of analyze
+   * @param edge
+   * @param nodeMap
+   * @param sentenceType
+   * @param accParent
+   * @return
+   */
+    private def analyzeGraphKnowledge(edge:KnowledgeBaseEdge, nodeMap:Map[String, KnowledgeBaseNode], sentenceType:Int, accParent:(List[List[Neo4jRecordMap]], List[String])): (List[List[Neo4jRecordMap]], List[String]) = {
+
+      val sourceKey = edge.sourceId
+      val targetKey = edge.destinationId
+      val sourceNode = nodeMap.get(sourceKey).getOrElse().asInstanceOf[KnowledgeBaseNode]
+      val destinationNode = nodeMap.get(targetKey).getOrElse().asInstanceOf[KnowledgeBaseNode]
+      val (propositionIds, searchResults) = searchMatchRelation(sourceNode, destinationNode, edge.caseStr, sentenceType)
+
+      if(sentenceType == PREMISE.index){
+        val (propositionIds2, searchResults2) = searchMatchRelation(sourceNode, destinationNode, edge.caseStr, CLAIM.index)
+        if(propositionIds2.size == 0) return (List.empty[List[Neo4jRecordMap]], List.empty[String])
+        (accParent._1 ++ searchResults ++ searchResults2, accParent._2 ++ propositionIds ++ propositionIds2)
+      }else{
+        (accParent._1 ++ searchResults, accParent._2 ++ propositionIds)
+      }
+    }
+
 
     /**
      * This function searches for a subgraph that matches the predicate argument analysis result of the input sentence.
