@@ -169,23 +169,10 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
      * @return
      */
     private def getPropositionIds(neo4jRecords:Neo4jRecords, sourceKey:String, tragetKey:String): (List[String], List[List[Neo4jRecordMap]]) ={
-
-      var axiomIds:List[String] = List.empty[String]
-      var searchResults= List.empty[List[Neo4jRecordMap]]
-      neo4jRecords.records.foreach( record => {
-        searchResults = searchResults :+ record
-        record.foreach { map =>
-          logger.debug(map.key, map.value)
-          if(map.key.equals(sourceKey)){
-            val unit:Neo4jRecodeUnit = map.value
-            axiomIds = axiomIds :+ unit.logicNode.propositionId
-          }else if(map.key.equals(tragetKey)){
-            val unit:Neo4jRecodeUnit = map.value
-            axiomIds = axiomIds :+ unit.logicNode.propositionId
-          }
-        }
-      })
-      return (axiomIds, searchResults)
+      val (searchResults, propositionIds) =neo4jRecords.records.foldLeft((List.empty[List[Neo4jRecordMap]], List.empty[String])){
+        (acc, x) => { (acc._1 :+ x, acc._2 :+ x.head.value.logicNode.propositionId)}
+      }
+      (propositionIds, searchResults)
     }
 
     /**
