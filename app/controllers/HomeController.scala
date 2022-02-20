@@ -82,6 +82,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
       //If the number of search results with this positionId and the number of edges are equal,
       //it is assumed that they match exactly. It is no longer a partial match.
       val selectedPropositionIds =  propositionIdsHavingMaxFreq.filter(x => searchResults.filter(y =>  existALlPropositionIdEqualId(x, y)).size ==  aso.edgeList.size)
+      if(selectedPropositionIds.size == 0) return aso
       val deductionResult:DeductionResult = new DeductionResult(true, selectedPropositionIds, "synonym-match")
       val updateDeductionResultMap = aso.deductionResultMap.updated(aso.sentenceType.toString, deductionResult)
       AnalyzedSentenceObject(aso.nodeMap, aso.edgeList, aso.sentenceType, updateDeductionResultMap)
