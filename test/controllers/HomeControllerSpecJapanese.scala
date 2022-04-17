@@ -33,11 +33,11 @@ class HomeControllerSpecJapanese extends PlaySpec with BeforeAndAfter with Befor
 
   override def beforeAll(): Unit = {
     Neo4JAccessor.delete()
-    Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("太郎は秀逸な発案をした。","ja_JP", "{}")))
+    Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("太郎は秀逸な発案をした。","ja_JP", "{}", false)))
     val knowledgeSentenceSet = KnowledgeSentenceSet(
-      List(Knowledge("太郎は秀逸な発案をした。","ja_JP", "{}")),
+      List(Knowledge("太郎は秀逸な発案をした。","ja_JP", "{}", false)),
       List.empty[PropositionRelation],
-      List(Knowledge("太郎は脚光を浴びた。","ja_JP", "{}")),
+      List(Knowledge("太郎は脚光を浴びた。","ja_JP", "{}", false)),
       List.empty[PropositionRelation])
     Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSet)
 
@@ -75,7 +75,7 @@ class HomeControllerSpecJapanese extends PlaySpec with BeforeAndAfter with Befor
                    |                    "domains": {
                    |                        "": ""
                    |                    },
-                   |                    "isDenial": false,
+                   |                    "isDenialWord": false,
                    |                    "isConditionalConnection": false,
                    |                    "normalizedNameYomi": "する",
                    |                    "surfaceYomi": "した。",
@@ -105,7 +105,7 @@ class HomeControllerSpecJapanese extends PlaySpec with BeforeAndAfter with Befor
                    |                    "domains": {
                    |                        "": ""
                    |                    },
-                   |                    "isDenial": false,
+                   |                    "isDenialWord": false,
                    |                    "isConditionalConnection": false,
                    |                    "normalizedNameYomi": "ていあん",
                    |                    "surfaceYomi": "ていあんを",
@@ -135,7 +135,7 @@ class HomeControllerSpecJapanese extends PlaySpec with BeforeAndAfter with Befor
                    |                    "domains": {
                    |                        "": ""
                    |                    },
-                   |                    "isDenial": false,
+                   |                    "isDenialWord": false,
                    |                    "isConditionalConnection": false,
                    |                    "normalizedNameYomi": "しゅういつだ",
                    |                    "surfaceYomi": "しゅういつな",
@@ -165,7 +165,7 @@ class HomeControllerSpecJapanese extends PlaySpec with BeforeAndAfter with Befor
                    |                    "domains": {
                    |                        "": ""
                    |                    },
-                   |                    "isDenial": false,
+                   |                    "isDenialWord": false,
                    |                    "isConditionalConnection": false,
                    |                    "normalizedNameYomi": "たろう",
                    |                    "surfaceYomi": "たろうは",
@@ -258,7 +258,7 @@ class HomeControllerSpecJapanese extends PlaySpec with BeforeAndAfter with Befor
                    |                    "domains": {
                    |                        "": ""
                    |                    },
-                   |                    "isDenial": false,
+                   |                    "isDenialWord": false,
                    |                    "isConditionalConnection": false,
                    |                    "normalizedNameYomi": "する",
                    |                    "surfaceYomi": "した。",
@@ -288,7 +288,7 @@ class HomeControllerSpecJapanese extends PlaySpec with BeforeAndAfter with Befor
                    |                    "domains": {
                    |                        "": ""
                    |                    },
-                   |                    "isDenial": false,
+                   |                    "isDenialWord": false,
                    |                    "isConditionalConnection": false,
                    |                    "normalizedNameYomi": "ていあん",
                    |                    "surfaceYomi": "ていあんを",
@@ -318,7 +318,7 @@ class HomeControllerSpecJapanese extends PlaySpec with BeforeAndAfter with Befor
                    |                    "domains": {
                    |                        "": ""
                    |                    },
-                   |                    "isDenial": false,
+                   |                    "isDenialWord": false,
                    |                    "isConditionalConnection": false,
                    |                    "normalizedNameYomi": "しゅういつだ",
                    |                    "surfaceYomi": "しゅういつな",
@@ -348,7 +348,7 @@ class HomeControllerSpecJapanese extends PlaySpec with BeforeAndAfter with Befor
                    |                    "domains": {
                    |                        "": ""
                    |                    },
-                   |                    "isDenial": false,
+                   |                    "isDenialWord": false,
                    |                    "isConditionalConnection": false,
                    |                    "normalizedNameYomi": "たろう",
                    |                    "surfaceYomi": "たろうは",
@@ -449,7 +449,7 @@ class HomeControllerSpecJapanese extends PlaySpec with BeforeAndAfter with Befor
                    |                    "domains": {
                    |                        "": ""
                    |                    },
-                   |                    "isDenial": false,
+                   |                    "isDenialWord": false,
                    |                    "isConditionalConnection": false,
                    |                    "normalizedNameYomi": "する",
                    |                    "surfaceYomi": "した。",
@@ -479,7 +479,7 @@ class HomeControllerSpecJapanese extends PlaySpec with BeforeAndAfter with Befor
                    |                    "domains": {
                    |                        "": ""
                    |                    },
-                   |                    "isDenial": false,
+                   |                    "isDenialWord": false,
                    |                    "isConditionalConnection": false,
                    |                    "normalizedNameYomi": "ていあん",
                    |                    "surfaceYomi": "ていあんを",
@@ -509,7 +509,7 @@ class HomeControllerSpecJapanese extends PlaySpec with BeforeAndAfter with Befor
                    |                    "domains": {
                    |                        "": ""
                    |                    },
-                   |                    "isDenial": false,
+                   |                    "isDenialWord": false,
                    |                    "isConditionalConnection": false,
                    |                    "normalizedNameYomi": "しゅういつだ",
                    |                    "surfaceYomi": "しゅういつな",
@@ -539,7 +539,7 @@ class HomeControllerSpecJapanese extends PlaySpec with BeforeAndAfter with Befor
                    |                    "domains": {
                    |                        "": ""
                    |                    },
-                   |                    "isDenial": false,
+                   |                    "isDenialWord": false,
                    |                    "isConditionalConnection": false,
                    |                    "normalizedNameYomi": "たろう",
                    |                    "surfaceYomi": "たろうは",
