@@ -50,11 +50,25 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
      */
     def execute()  = Action(parse.json) { request =>
       try {
+
         val json = request.body
         val analyzedSentenceObjects: AnalyzedSentenceObjects = Json.parse(json.toString).as[AnalyzedSentenceObjects]
-        val convertAnalyzedSentenceObjects = analyzedSentenceObjects.analyzedSentenceObjects.map(analyze)
-        Ok(Json.toJson(AnalyzedSentenceObjects(convertAnalyzedSentenceObjects))).as(JSON)
-
+        val claimAnalyzedSentenceObjects = analyzedSentenceObjects.analyzedSentenceObjects.filter(_.sentenceType == 1).map(analyze(_, true))
+        if(claimAnalyzedSentenceObjects.filter(_.deductionResultMap.filter(_._2.status).size > 0).size == claimAnalyzedSentenceObjects.size){
+          Ok(Json.toJson(AnalyzedSentenceObjects(claimAnalyzedSentenceObjects))).as(JSON)
+        }else{
+          val premiseAnalyzedSentenceObjects = analyzedSentenceObjects.analyzedSentenceObjects.filter(_.sentenceType == 0).map(analyze(_, true))
+          if (premiseAnalyzedSentenceObjects.filter(x => x.deductionResultMap.filter(y => y._1.equals("0") && y._2.status).size > 0).size == premiseAnalyzedSentenceObjects.size){
+            val allAnalyzedSentenceObjects = analyzedSentenceObjects.analyzedSentenceObjects.map(analyze(_, false))
+            if(allAnalyzedSentenceObjects.filter(x => x.deductionResultMap.filter(y => y._2.status).size > 0).size == allAnalyzedSentenceObjects.size){
+              Ok(Json.toJson(AnalyzedSentenceObjects(premiseAnalyzedSentenceObjects ++ allAnalyzedSentenceObjects.filter(_.sentenceType == 1)))).as(JSON)
+            }else{
+              Ok(Json.toJson(AnalyzedSentenceObjects(premiseAnalyzedSentenceObjects ++ claimAnalyzedSentenceObjects))).as(JSON)
+            }
+          }else{
+            Ok(Json.toJson(AnalyzedSentenceObjects(premiseAnalyzedSentenceObjects ++ claimAnalyzedSentenceObjects))).as(JSON)
+          }
+        }
       }catch {
         case e: Exception => {
           logger.error(e.toString, e)
@@ -68,7 +82,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
      * @param aso
      * @return
      */
-    private def analyze(aso:AnalyzedSentenceObject): AnalyzedSentenceObject = Try{
+    private def analyze(aso:AnalyzedSentenceObject, claimCheck:Boolean): AnalyzedSentenceObject = Try{
 
       val (searchResults, propositionIds) = aso.edgeList.foldLeft((List.empty[List[Neo4jRecordMap]], List.empty[String])){
         (acc, x) => analyzeGraphKnowledge(x, aso.nodeMap, aso.sentenceType, acc)
@@ -81,9 +95,32 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
       logger.debug(propositionIdsHavingMaxFreq.toString())
       //If the number of search results with this positionId and the number of edges are equal,
       //it is assumed that they match exactly. It is no longer a partial match.
-      val selectedPropositionIds =  propositionIdsHavingMaxFreq.filter(x => searchResults.filter(y =>  existALlPropositionIdEqualId(x, y)).size ==  aso.edgeList.size)
+
+      /*
+      propositionIdsHavingMaxFreq.foreach(x => {
+        logger.info("-----------------------------------------------------------------------")
+        logger.info(x)
+        logger.info(aso.edgeList.size.toString)
+        logger.info("-----------------------------------------------------------------------")
+        searchResults.foreach( y => {
+          logger.info(existALlPropositionIdEqualId(x, y).toString)
+        })
+      })
+      */
+      //SynonymNode含め被覆できていれば良いとする。
+      val selectedPropositionIds =  propositionIdsHavingMaxFreq.filter(x => searchResults.filter(y =>  existALlPropositionIdEqualId(x, y)).size >=  aso.edgeList.size)
+
       if(selectedPropositionIds.size == 0) return aso
-      val deductionResult:DeductionResult = new DeductionResult(true, selectedPropositionIds, "synonym-match")
+      val status:Boolean = claimCheck match {
+        case true => {
+          selectedPropositionIds.filterNot(havePremiseNode(_)).size match {
+            case 0 => false
+            case _ => true
+          }
+        }
+        case _ => true
+      }
+      val deductionResult:DeductionResult = new DeductionResult(status, selectedPropositionIds, "synonym-match")
       val updateDeductionResultMap = aso.deductionResultMap.updated(aso.sentenceType.toString, deductionResult)
       AnalyzedSentenceObject(aso.nodeMap, aso.edgeList, aso.sentenceType, updateDeductionResultMap)
 
@@ -92,6 +129,17 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
       case Failure(e) => throw e
     }
 
+  /**
+   *
+   * @param propositionId
+   * @return
+   */
+  private def havePremiseNode(propositionId:String):Boolean = {
+    val query = "MATCH (m:PremiseNode)-[e:LogicEdge]-(n:ClaimNode) WHERE n.propositionId='%s' return m, e, n".format(propositionId)
+    val jsonStr:String = getCypherQueryResult(query, "")
+    if(jsonStr.equals("""{"records":[]}""")) false
+    else true
+  }
 
   /**
    * This function is a sub-function of analyze
@@ -107,15 +155,18 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
       val targetKey = edge.destinationId
       val sourceNode = nodeMap.get(sourceKey).getOrElse().asInstanceOf[KnowledgeBaseNode]
       val destinationNode = nodeMap.get(targetKey).getOrElse().asInstanceOf[KnowledgeBaseNode]
-      val (propositionIds, searchResults) = searchMatchRelation(sourceNode, destinationNode, edge.caseStr, sentenceType)
 
-      if(sentenceType == PREMISE.index){
-        val (propositionIds2, searchResults2) = searchMatchRelation(sourceNode, destinationNode, edge.caseStr, CLAIM.index)
-        if(propositionIds2.size == 0) return (List.empty[List[Neo4jRecordMap]], List.empty[String])
-        (accParent._1 ++ searchResults ++ searchResults2, accParent._2 ++ propositionIds ++ propositionIds2)
-      }else{
-        (accParent._1 ++ searchResults, accParent._2 ++ propositionIds)
+      val initAcc = sentenceType match{
+        case PREMISE.index => {
+          val (propositionIds, searchResults) = searchMatchRelation(sourceNode, destinationNode, edge.caseStr, CLAIM.index)
+          if(propositionIds.size == 0) return accParent
+          (accParent._1 ++ searchResults, accParent._2 ++ propositionIds)
+        }
+        case _ => accParent
       }
+
+      val (propositionIds, searchResults) = searchMatchRelation(sourceNode, destinationNode, edge.caseStr, sentenceType)
+      (initAcc._1 ++ searchResults, initAcc._2 ++ propositionIds)
     }
 
 
@@ -171,7 +222,11 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
      */
     private def getPropositionIds(neo4jRecords:Neo4jRecords, sourceKey:String, tragetKey:String): (List[String], List[List[Neo4jRecordMap]]) ={
       val (searchResults, propositionIds) =neo4jRecords.records.foldLeft((List.empty[List[Neo4jRecordMap]], List.empty[String])){
-        (acc, x) => { (acc._1 :+ x, acc._2 :+ x.head.value.logicNode.propositionId)}
+        (acc, x) => {
+          x.head.value.logicNode.propositionId match {
+            case "" =>  (acc._1 :+ x, acc._2 :+ x.head.value.synonymNode.propositionId)
+            case _ => (acc._1 :+ x, acc._2 :+ x.head.value.logicNode.propositionId)}
+          }
       }
       (propositionIds, searchResults)
     }
