@@ -35,7 +35,7 @@ import play.api.test.{FakeRequest, _}
 
 import scala.concurrent.duration.DurationInt
 
-class HomeControllerSpecJapanese2 extends PlaySpec with BeforeAndAfter with BeforeAndAfterAll with GuiceOneAppPerSuite with DefaultAwaitTimeout with Injecting {
+class HomeControllerSpecJapanese3 extends PlaySpec with BeforeAndAfter with BeforeAndAfterAll with GuiceOneAppPerSuite with DefaultAwaitTimeout with Injecting {
 
   before {
     Neo4JAccessor.delete()
@@ -65,10 +65,12 @@ class HomeControllerSpecJapanese2 extends PlaySpec with BeforeAndAfter with Befo
 太郎は素晴らしい評価を受けた。
 */
 
-  "The specification11" should {
+
+  "The specification21" should {
     "returns an appropriate response" in {
+      Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("太郎は秀逸な発案をした。","ja_JP", "{}", false)))
       Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("それは人事改善の対策だった。","ja_JP", "{}", false)))
-      val inputSentence = Json.toJson(InputSentence(List(Knowledge("太郎はある分析を進めてきた。","ja_JP", "{}", false), Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}", false)), List(Knowledge("それは人事改善の措置だった。","ja_JP", "{}", false)))).toString()
+      val inputSentence = Json.toJson(InputSentence(List(Knowledge("太郎はある分析を進めてきた。","ja_JP", "{}", false)), List(Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}", false), Knowledge("それは人事改善の措置だった。","ja_JP", "{}", false)))).toString()
       val json = ToposoidUtils.callComponent(inputSentence, conf.getString("SENTENCE_PARSER_JP_WEB_HOST"), "9001", "analyze")
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json")
@@ -79,19 +81,19 @@ class HomeControllerSpecJapanese2 extends PlaySpec with BeforeAndAfter with Befo
       val jsonResult: String = contentAsJson(result).toString()
       val analyzedSentenceObjects: AnalyzedSentenceObjects = Json.parse(jsonResult).as[AnalyzedSentenceObjects]
       assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("0").get.status).size == 0)
-      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("1").get.status).size == 1)
+      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("1").get.status).size == 2)
     }
   }
 
-  "The specification12" should {
+  "The specification22" should {
     "returns an appropriate response" in {
       val knowledgeSentenceSet = KnowledgeSentenceSet(
         List(Knowledge("太郎はある調査を進めてきた。","ja_JP", "{}")),
         List.empty[PropositionRelation],
-        List(Knowledge("それは人事改善の対策だった。","ja_JP", "{}")),
+        List(Knowledge("太郎は秀逸な発案をした。","ja_JP", "{}", false), Knowledge("それは人事改善の対策だった。","ja_JP", "{}")),
         List.empty[PropositionRelation])
       Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSet)
-      val inputSentence = Json.toJson(InputSentence(List(Knowledge("太郎はある分析を進めてきた。","ja_JP", "{}", false), Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}", false)), List(Knowledge("それは人事改善の措置だった。","ja_JP", "{}", false)))).toString()
+      val inputSentence = Json.toJson(InputSentence(List(Knowledge("太郎はある分析を進めてきた。","ja_JP", "{}", false)), List(Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}", false), Knowledge("それは人事改善の措置だった。","ja_JP", "{}", false)))).toString()
       val json = ToposoidUtils.callComponent(inputSentence, conf.getString("SENTENCE_PARSER_JP_WEB_HOST"), "9001", "analyze")
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json")
@@ -106,86 +108,16 @@ class HomeControllerSpecJapanese2 extends PlaySpec with BeforeAndAfter with Befo
     }
   }
 
-  "The specification13" should {
-    "returns an appropriate response" in {
-      val knowledgeSentenceSet = KnowledgeSentenceSet(
-        List(Knowledge("太郎は秀逸な発案をした。","ja_JP", "{}")),
-        List.empty[PropositionRelation],
-        List(Knowledge("それは人事改善の対策だった。","ja_JP", "{}")),
-        List.empty[PropositionRelation])
-      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSet)
-      val inputSentence = Json.toJson(InputSentence(List(Knowledge("太郎はある分析を進めてきた。","ja_JP", "{}", false), Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}", false)), List(Knowledge("それは人事改善の措置だった。","ja_JP", "{}", false)))).toString()
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("SENTENCE_PARSER_JP_WEB_HOST"), "9001", "analyze")
-      val fr = FakeRequest(POST, "/execute")
-        .withHeaders("Content-type" -> "application/json")
-        .withJsonBody(Json.parse(json))
-      val result = call(controller.execute(), fr)
-      status(result) mustBe OK
-      contentType(result) mustBe Some("application/json")
-      val jsonResult: String = contentAsJson(result).toString()
-      val analyzedSentenceObjects: AnalyzedSentenceObjects = Json.parse(jsonResult).as[AnalyzedSentenceObjects]
-      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("0").get.status).size == 0)
-      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("1").get.status).size == 0)
-    }
-  }
-
-  "The specification14" should {
-    "returns an appropriate response" in {
-      val knowledgeSentenceSet = KnowledgeSentenceSet(
-        List(Knowledge("太郎はある調査を進めてきた。","ja_JP", "{}"),Knowledge("太郎は秀逸な発案をした。","ja_JP", "{}", false)),
-        List.empty[PropositionRelation],
-        List(Knowledge("それは人事改善の対策だった。","ja_JP", "{}")),
-        List.empty[PropositionRelation])
-      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSet)
-      val inputSentence = Json.toJson(InputSentence(List(Knowledge("太郎はある分析を進めてきた。","ja_JP", "{}", false), Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}", false)), List(Knowledge("それは人事改善の措置だった。","ja_JP", "{}", false)))).toString()
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("SENTENCE_PARSER_JP_WEB_HOST"), "9001", "analyze")
-      val fr = FakeRequest(POST, "/execute")
-        .withHeaders("Content-type" -> "application/json")
-        .withJsonBody(Json.parse(json))
-      val result = call(controller.execute(), fr)
-      status(result) mustBe OK
-      contentType(result) mustBe Some("application/json")
-      val jsonResult: String = contentAsJson(result).toString()
-      val analyzedSentenceObjects: AnalyzedSentenceObjects = Json.parse(jsonResult).as[AnalyzedSentenceObjects]
-      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("0").get.status).size == 0)
-      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("1").get.status).size == 0)
-    }
-  }
-
-  "The specification15" should {
-    "returns an appropriate response" in {
-      Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("それは人事改善の対策だった。","ja_JP", "{}", false)))
-      val knowledgeSentenceSet = KnowledgeSentenceSet(
-        List(Knowledge("太郎はある調査を進めてきた。","ja_JP", "{}"),Knowledge("太郎は秀逸な発案をした。","ja_JP", "{}", false)),
-        List.empty[PropositionRelation],
-        List(Knowledge("それは人事改善の対策だった。","ja_JP", "{}")),
-        List.empty[PropositionRelation])
-      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSet)
-      val inputSentence = Json.toJson(InputSentence(List(Knowledge("太郎はある分析を進めてきた。","ja_JP", "{}", false), Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}", false)), List(Knowledge("それは人事改善の措置だった。","ja_JP", "{}", false)))).toString()
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("SENTENCE_PARSER_JP_WEB_HOST"), "9001", "analyze")
-      val fr = FakeRequest(POST, "/execute")
-        .withHeaders("Content-type" -> "application/json")
-        .withJsonBody(Json.parse(json))
-      val result = call(controller.execute(), fr)
-      status(result) mustBe OK
-      contentType(result) mustBe Some("application/json")
-      val jsonResult: String = contentAsJson(result).toString()
-      val analyzedSentenceObjects: AnalyzedSentenceObjects = Json.parse(jsonResult).as[AnalyzedSentenceObjects]
-      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("0").get.status).size == 0)
-      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("1").get.status).size == 1)
-    }
-  }
-
-  "The specification16" should {
+  "The specification23" should {
     "returns an appropriate response" in {
       Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("太郎はある調査を進めてきた。","ja_JP", "{}", false)))
       val knowledgeSentenceSet = KnowledgeSentenceSet(
-        List(Knowledge("太郎はある調査を進めてきた。","ja_JP", "{}"),Knowledge("太郎は秀逸な発案をした。","ja_JP", "{}", false)),
+        List(Knowledge("太郎はある調査を進めてきた。","ja_JP", "{}")),
         List.empty[PropositionRelation],
-        List(Knowledge("それは人事改善の対策だった。","ja_JP", "{}")),
+        List(Knowledge("太郎は秀逸な発案をした。","ja_JP", "{}", false), Knowledge("それは人事改善の対策だった。","ja_JP", "{}")),
         List.empty[PropositionRelation])
       Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSet)
-      val inputSentence = Json.toJson(InputSentence(List(Knowledge("太郎はある分析を進めてきた。","ja_JP", "{}", false), Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}", false)), List(Knowledge("それは人事改善の措置だった。","ja_JP", "{}", false)))).toString()
+      val inputSentence = Json.toJson(InputSentence(List(Knowledge("太郎はある分析を進めてきた。","ja_JP", "{}", false)), List(Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}", false), Knowledge("それは人事改善の措置だった。","ja_JP", "{}", false)))).toString()
       val json = ToposoidUtils.callComponent(inputSentence, conf.getString("SENTENCE_PARSER_JP_WEB_HOST"), "9001", "analyze")
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json")
@@ -196,21 +128,19 @@ class HomeControllerSpecJapanese2 extends PlaySpec with BeforeAndAfter with Befo
       val jsonResult: String = contentAsJson(result).toString()
       val analyzedSentenceObjects: AnalyzedSentenceObjects = Json.parse(jsonResult).as[AnalyzedSentenceObjects]
       assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("0").get.status).size == 1)
-      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("1").get.status).size == 0)
+      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("1").get.status).size == 2)
     }
   }
 
-  "The specification17" should {
+  "The specification24" should {
     "returns an appropriate response" in {
-      Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("太郎はある調査を進めてきた。","ja_JP", "{}", false)))
-      Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("太郎は秀逸な発案をした。","ja_JP", "{}", false)))
       val knowledgeSentenceSet = KnowledgeSentenceSet(
-        List(Knowledge("太郎はある調査を進めてきた。","ja_JP", "{}"),Knowledge("太郎は秀逸な発案をした。","ja_JP", "{}", false)),
+        List(Knowledge("太郎はある調査を進めてきた。","ja_JP", "{}")),
         List.empty[PropositionRelation],
-        List(Knowledge("それは人事改善の対策だった。","ja_JP", "{}")),
+        List(Knowledge("太郎は秀逸な発案をした。","ja_JP", "{}", false)),
         List.empty[PropositionRelation])
       Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSet)
-      val inputSentence = Json.toJson(InputSentence(List(Knowledge("太郎はある分析を進めてきた。","ja_JP", "{}", false), Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}", false)), List(Knowledge("それは人事改善の措置だった。","ja_JP", "{}", false)))).toString()
+      val inputSentence = Json.toJson(InputSentence(List(Knowledge("太郎はある分析を進めてきた。","ja_JP", "{}", false)), List(Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}", false), Knowledge("それは人事改善の措置だった。","ja_JP", "{}", false)))).toString()
       val json = ToposoidUtils.callComponent(inputSentence, conf.getString("SENTENCE_PARSER_JP_WEB_HOST"), "9001", "analyze")
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json")
@@ -220,14 +150,20 @@ class HomeControllerSpecJapanese2 extends PlaySpec with BeforeAndAfter with Befo
       contentType(result) mustBe Some("application/json")
       val jsonResult: String = contentAsJson(result).toString()
       val analyzedSentenceObjects: AnalyzedSentenceObjects = Json.parse(jsonResult).as[AnalyzedSentenceObjects]
-      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("0").get.status).size == 2)
-      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("1").get.status).size == 1)
+      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("0").get.status).size == 0)
+      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("1").get.status).size == 0)
     }
   }
 
-  "The specification18" should {
+  "The specification25" should {
     "returns an appropriate response" in {
       Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("太郎はある調査を進めてきた。","ja_JP", "{}", false)))
+      val knowledgeSentenceSet = KnowledgeSentenceSet(
+        List(Knowledge("太郎はある調査を進めてきた。","ja_JP", "{}")),
+        List.empty[PropositionRelation],
+        List(Knowledge("太郎は秀逸な発案をした。","ja_JP", "{}", false)),
+        List.empty[PropositionRelation])
+      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSet)
       val inputSentence = Json.toJson(InputSentence(List(Knowledge("太郎はある分析を進めてきた。","ja_JP", "{}", false)), List(Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}", false), Knowledge("それは人事改善の措置だった。","ja_JP", "{}", false)))).toString()
       val json = ToposoidUtils.callComponent(inputSentence, conf.getString("SENTENCE_PARSER_JP_WEB_HOST"), "9001", "analyze")
       val fr = FakeRequest(POST, "/execute")
@@ -243,10 +179,70 @@ class HomeControllerSpecJapanese2 extends PlaySpec with BeforeAndAfter with Befo
     }
   }
 
-  "The specification19" should {
+  "The specification26" should {
+    "returns an appropriate response" in {
+      Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("太郎はある調査を進めてきた。","ja_JP", "{}", false)))
+      val knowledgeSentenceSet = KnowledgeSentenceSet(
+        List(Knowledge("太郎はある調査を進めてきた。","ja_JP", "{}")),
+        List.empty[PropositionRelation],
+        List(Knowledge("それは人事改善の対策だった。","ja_JP", "{}", false)),
+        List.empty[PropositionRelation])
+      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSet)
+      val inputSentence = Json.toJson(InputSentence(List(Knowledge("太郎はある分析を進めてきた。","ja_JP", "{}", false)), List(Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}", false), Knowledge("それは人事改善の措置だった。","ja_JP", "{}", false)))).toString()
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("SENTENCE_PARSER_JP_WEB_HOST"), "9001", "analyze")
+      val fr = FakeRequest(POST, "/execute")
+        .withHeaders("Content-type" -> "application/json")
+        .withJsonBody(Json.parse(json))
+      val result = call(controller.execute(), fr)
+      status(result) mustBe OK
+      contentType(result) mustBe Some("application/json")
+      val jsonResult: String = contentAsJson(result).toString()
+      val analyzedSentenceObjects: AnalyzedSentenceObjects = Json.parse(jsonResult).as[AnalyzedSentenceObjects]
+      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("0").get.status).size == 1)
+      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("1").get.status).size == 0)
+    }
+  }
+
+  "The specification27" should {
+    "returns an appropriate response" in {
+      Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("太郎はある調査を進めてきた。","ja_JP", "{}", false)))
+      val inputSentence = Json.toJson(InputSentence(List(Knowledge("太郎はある分析を進めてきた。","ja_JP", "{}", false), Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}", false)), List(Knowledge("それは人事改善の措置だった。","ja_JP", "{}", false), Knowledge("太郎は素晴らしい評価を受けた。","ja_JP", "{}", false)))).toString()
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("SENTENCE_PARSER_JP_WEB_HOST"), "9001", "analyze")
+      val fr = FakeRequest(POST, "/execute")
+        .withHeaders("Content-type" -> "application/json")
+        .withJsonBody(Json.parse(json))
+      val result = call(controller.execute(), fr)
+      status(result) mustBe OK
+      contentType(result) mustBe Some("application/json")
+      val jsonResult: String = contentAsJson(result).toString()
+      val analyzedSentenceObjects: AnalyzedSentenceObjects = Json.parse(jsonResult).as[AnalyzedSentenceObjects]
+      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("0").get.status).size == 1)
+      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("1").get.status).size == 0)
+    }
+  }
+
+  "The specification28" should {
     "returns an appropriate response" in {
       Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("太郎は秀逸な発案をした。","ja_JP", "{}", false)))
-      val inputSentence = Json.toJson(InputSentence(List(Knowledge("太郎はある分析を進めてきた。","ja_JP", "{}", false)), List(Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}", false), Knowledge("それは人事改善の措置だった。","ja_JP", "{}", false)))).toString()
+      val inputSentence = Json.toJson(InputSentence(List(Knowledge("太郎はある分析を進めてきた。","ja_JP", "{}", false), Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}", false)), List(Knowledge("それは人事改善の措置だった。","ja_JP", "{}", false), Knowledge("太郎は素晴らしい評価を受けた。","ja_JP", "{}", false)))).toString()
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("SENTENCE_PARSER_JP_WEB_HOST"), "9001", "analyze")
+      val fr = FakeRequest(POST, "/execute")
+        .withHeaders("Content-type" -> "application/json")
+        .withJsonBody(Json.parse(json))
+      val result = call(controller.execute(), fr)
+      status(result) mustBe OK
+      contentType(result) mustBe Some("application/json")
+      val jsonResult: String = contentAsJson(result).toString()
+      val analyzedSentenceObjects: AnalyzedSentenceObjects = Json.parse(jsonResult).as[AnalyzedSentenceObjects]
+      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("0").get.status).size == 1)
+      assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(_.deductionResultMap.get("1").get.status).size == 0)
+    }
+  }
+
+  "The specification29" should {
+    "returns an appropriate response" in {
+      Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("それは人事改善の対策だった。","ja_JP", "{}", false)))
+      val inputSentence = Json.toJson(InputSentence(List(Knowledge("太郎はある分析を進めてきた。","ja_JP", "{}", false), Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}", false)), List(Knowledge("それは人事改善の措置だった。","ja_JP", "{}", false), Knowledge("太郎は素晴らしい評価を受けた。","ja_JP", "{}", false)))).toString()
       val json = ToposoidUtils.callComponent(inputSentence, conf.getString("SENTENCE_PARSER_JP_WEB_HOST"), "9001", "analyze")
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json")
@@ -261,10 +257,10 @@ class HomeControllerSpecJapanese2 extends PlaySpec with BeforeAndAfter with Befo
     }
   }
 
-  "The specification20" should {
+  "The specification30" should {
     "returns an appropriate response" in {
-      Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("それは人事改善の対策だった。","ja_JP", "{}", false)))
-      val inputSentence = Json.toJson(InputSentence(List(Knowledge("太郎はある分析を進めてきた。","ja_JP", "{}", false)), List(Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}", false), Knowledge("それは人事改善の措置だった。","ja_JP", "{}", false)))).toString()
+      Sentence2Neo4jTransformer.createGraphAuto(List(Knowledge("太郎は素晴らしい評価を得た。","ja_JP", "{}", false)))
+      val inputSentence = Json.toJson(InputSentence(List(Knowledge("太郎はある分析を進めてきた。","ja_JP", "{}", false), Knowledge("太郎は秀逸な提案をした。","ja_JP", "{}", false)), List(Knowledge("それは人事改善の措置だった。","ja_JP", "{}", false), Knowledge("太郎は素晴らしい評価を受けた。","ja_JP", "{}", false)))).toString()
       val json = ToposoidUtils.callComponent(inputSentence, conf.getString("SENTENCE_PARSER_JP_WEB_HOST"), "9001", "analyze")
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json")
