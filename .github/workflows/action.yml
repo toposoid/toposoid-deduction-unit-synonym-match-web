@@ -30,6 +30,7 @@ jobs:
             docker-compose -f docker-compose-workflow.yml up -d toposoid-common-nlp-japanese-web
             docker-compose -f docker-compose-workflow.yml up -d toposoid-sentence-parser-japanese-web
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt 'testOnly **.*Japanese1'"
+            docker-compose -f docker-compose-workflow.yml restart -d neo4j
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt 'testOnly **.*Japanese2'"
             docker-compose -f docker-compose-workflow.yml rm -fsv toposoid-common-nlp-japanese-web
             docker-compose -f docker-compose-workflow.yml rm -fsv toposoid-sentence-parser-japanese-web
@@ -37,6 +38,7 @@ jobs:
             docker-compose -f docker-compose-workflow.yml up -d toposoid-common-nlp-english-web
             docker-compose -f docker-compose-workflow.yml up -d toposoid-sentence-parser-english-web
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt 'testOnly **.*English1'"
+            docker-compose -f docker-compose-workflow.yml restart -d neo4j
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt 'testOnly **.*English2'"
       - name: Docker meta
         id: docker_meta
