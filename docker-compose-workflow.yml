@@ -9,7 +9,7 @@ networks:
 
 services:
   toposoid-deduction-unit-synonym-match-web:
-    image: toposoid-deduction-unit-synonym-match-web:0.3-SNAPSHOT
+    image: toposoid-deduction-unit-synonym-match-web:0.3
     tty: true
     environment:
       - GRAPHDB_HOST=172.30.0.2
@@ -26,7 +26,7 @@ services:
     ports:
       - 9102:9102
   scala-data-accessor-neo4j-web:
-    image: toposoid/scala-data-accessor-neo4j-web:0.3-SNAPSHOT-workflow
+    image: toposoid/scala-data-accessor-neo4j-web:0.3-workflow
     environment:
       - GRAPHDB_HOST=172.30.0.2
       - PRIVATE_IP_ADDRESS=172.30.0.3
@@ -37,7 +37,7 @@ services:
     ports:
       - 9005:9005
   toposoid-sentence-parser-japanese-web:
-    image: toposoid/toposoid-sentence-parser-japanese-web:0.3-SNAPSHOT-workflow
+    image: toposoid/toposoid-sentence-parser-japanese-web:0.3-workflow
     environment:
       - PRIVATE_IP_ADDRESS=172.30.0.4
       - PLAY_HTTP_PORT=9001
@@ -47,7 +47,7 @@ services:
     ports:
       - 9001:9001
   toposoid-common-nlp-japanese-web:
-    image: toposoid/toposoid-common-nlp-japanese-web:0.3-SNAPSHOT-workflow
+    image: toposoid/toposoid-common-nlp-japanese-web:0.3-workflow
     environment:
       - PRIVATE_IP_ADDRESS=172.30.0.5
       - SYNONYM_NOUN_SIMILARITY_THRESHHOLD_JP=0.52
@@ -61,7 +61,7 @@ services:
     ports:
       - 9006:9006
   toposoid-sentence-parser-english-web:
-    image: toposoid/toposoid-sentence-parser-english-web:0.3-SNAPSHOT
+    image: toposoid/toposoid-sentence-parser-english-web:0.3
     environment:
       - PRIVATE_IP_ADDRESS=172.30.0.6
       - PLAY_HTTP_PORT=9007
@@ -72,7 +72,7 @@ services:
     ports:
       - 9007:9007
   toposoid-common-nlp-english-web:
-    image: toposoid/toposoid-common-nlp-english-web:0.3-SNAPSHOT
+    image: toposoid/toposoid-common-nlp-english-web:0.3
     environment:
       - PRIVATE_IP_ADDRESS=172.30.0.7
       - SYNONYM_NOUN_SIMILARITY_THRESHHOLD_EN=0.52
