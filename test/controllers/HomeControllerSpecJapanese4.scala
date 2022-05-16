@@ -39,7 +39,7 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
 
   before {
     Neo4JAccessor.delete()
-    Thread.sleep(10000)
+    Thread.sleep(1000)
   }
 
   override def beforeAll(): Unit = {
