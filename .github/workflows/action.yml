@@ -40,13 +40,16 @@ jobs:
             docker-compose -f docker-compose-workflow.yml up -d toposoid-common-nlp-english-web
             docker-compose -f docker-compose-workflow.yml up -d toposoid-sentence-parser-english-web
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt 'testOnly **.*English1'"
-            docker-compose -f docker-compose-workflow.yml restart corenlp
+            docker-compose -f docker-compose-workflow.yml rm -fsv corenlp
+            docker-compose -f docker-compose-workflow.yml up corenlp
             curl -X POST  -d 'Life is beautiful.' http://localhost:9000
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt 'testOnly **.*English2'"
-            docker-compose -f docker-compose-workflow.yml restat corenlp
+            docker-compose -f docker-compose-workflow.yml rm -fsv corenlp
+            docker-compose -f docker-compose-workflow.yml up corenlp
             curl -X POST  -d 'Life is beautiful.' http://localhost:9000
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt 'testOnly **.*English3'"
-            docker-compose -f docker-compose-workflow.yml restart corenlp
+            docker-compose -f docker-compose-workflow.yml rm -fsv corenlp
+            docker-compose -f docker-compose-workflow.yml up corenlp
             curl -X POST  -d 'Life is beautiful.' http://localhost:9000
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt 'testOnly **.*English4'"
 
