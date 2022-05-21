@@ -46,7 +46,7 @@ curl -X POST -H "Content-Type: application/json" -d '{
                     "domains": {
                         "": ""
                     },
-                    "isDenial": false,
+                    "isDenialWord": false,
                     "isConditionalConnection": false,
                     "normalizedNameYomi": "やすい?易しい",
                     "surfaceYomi": "やすし。",
@@ -76,7 +76,7 @@ curl -X POST -H "Content-Type: application/json" -d '{
                     "domains": {
                         "産む": "家庭・暮らし"
                     },
-                    "isDenial": false,
+                    "isDenialWord": false,
                     "isConditionalConnection": false,
                     "normalizedNameYomi": "うむ",
                     "surfaceYomi": "うむが",
@@ -106,7 +106,7 @@ curl -X POST -H "Content-Type: application/json" -d '{
                     "domains": {
                         "": ""
                     },
-                    "isDenial": false,
+                    "isDenialWord": false,
                     "isConditionalConnection": false,
                     "normalizedNameYomi": "あんずる",
                     "surfaceYomi": "あんずるより",
