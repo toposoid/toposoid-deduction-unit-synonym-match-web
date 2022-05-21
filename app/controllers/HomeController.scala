@@ -19,17 +19,16 @@ package controllers
 
 import com.ideal.linked.toposoid.protocol.model.base.{AnalyzedSentenceObject, AnalyzedSentenceObjects, DeductionResult}
 import com.ideal.linked.toposoid.protocol.model.neo4j.{Neo4jRecodeUnit, Neo4jRecordMap, Neo4jRecords}
-import com.ideal.linked.toposoid.common.{PREMISE, ToposoidUtils}
+import com.ideal.linked.toposoid.common.{CLAIM, PREMISE, ToposoidUtils}
 import com.typesafe.scalalogging.LazyLogging
 import com.ideal.linked.toposoid.deduction.common.FacadeForAccessNeo4J.getCypherQueryResult
-import com.ideal.linked.toposoid.knowledgebase.model.KnowledgeBaseNode
+import com.ideal.linked.toposoid.knowledgebase.model.{KnowledgeBaseEdge, KnowledgeBaseNode}
 
 import javax.inject._
 import play.api._
 import play.api.libs.json.Json
 import play.api.mvc._
 
-import scala.util.control.Breaks
 import scala.util.{Failure, Success, Try}
 
 sealed abstract class RelationMatchState(val index: Int)
@@ -51,11 +50,25 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
      */
     def execute()  = Action(parse.json) { request =>
       try {
+
         val json = request.body
         val analyzedSentenceObjects: AnalyzedSentenceObjects = Json.parse(json.toString).as[AnalyzedSentenceObjects]
-        val convertAnalyzedSentenceObjects = analyzedSentenceObjects.analyzedSentenceObjects.map(analyze)
-        Ok(Json.toJson(AnalyzedSentenceObjects(convertAnalyzedSentenceObjects))).as(JSON)
-
+        val claimAnalyzedSentenceObjects = analyzedSentenceObjects.analyzedSentenceObjects.filter(_.sentenceType == 1).map(analyze(_, true))
+        if(claimAnalyzedSentenceObjects.filter(_.deductionResultMap.filter(_._2.status).size > 0).size == claimAnalyzedSentenceObjects.size){
+          Ok(Json.toJson(AnalyzedSentenceObjects(claimAnalyzedSentenceObjects))).as(JSON)
+        }else{
+          val premiseAnalyzedSentenceObjects = analyzedSentenceObjects.analyzedSentenceObjects.filter(_.sentenceType == 0).map(analyze(_, true))
+          if (premiseAnalyzedSentenceObjects.filter(x => x.deductionResultMap.filter(y => y._1.equals("0") && y._2.status).size > 0).size == premiseAnalyzedSentenceObjects.size){
+            val allAnalyzedSentenceObjects = analyzedSentenceObjects.analyzedSentenceObjects.map(analyze(_, false))
+            if(allAnalyzedSentenceObjects.filter(x => x.deductionResultMap.filter(y => y._2.status).size > 0).size == allAnalyzedSentenceObjects.size){
+              Ok(Json.toJson(AnalyzedSentenceObjects(premiseAnalyzedSentenceObjects ++ allAnalyzedSentenceObjects.filter(_.sentenceType == 1)))).as(JSON)
+            }else{
+              Ok(Json.toJson(AnalyzedSentenceObjects(premiseAnalyzedSentenceObjects ++ claimAnalyzedSentenceObjects))).as(JSON)
+            }
+          }else{
+            Ok(Json.toJson(AnalyzedSentenceObjects(premiseAnalyzedSentenceObjects ++ claimAnalyzedSentenceObjects))).as(JSON)
+          }
+        }
       }catch {
         case e: Exception => {
           logger.error(e.toString, e)
@@ -69,47 +82,93 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
      * @param aso
      * @return
      */
-    private def analyze(aso:AnalyzedSentenceObject): AnalyzedSentenceObject = Try{
+    private def analyze(aso:AnalyzedSentenceObject, claimCheck:Boolean): AnalyzedSentenceObject = Try{
 
-      var propositionIds = List.empty[String]
-      var searchResults= List.empty[List[Neo4jRecordMap]]
-      val b = new Breaks
-      b.breakable{
-        for(edge <- aso.edgeList) {
-          val sourceKey = edge.sourceId
-          val targetKey = edge.destinationId
-          val sourceNode = aso.nodeMap.get(sourceKey).getOrElse().asInstanceOf[KnowledgeBaseNode]
-          val destinationNode = aso.nodeMap.get(targetKey).getOrElse().asInstanceOf[KnowledgeBaseNode]
-          val tmpList  = searchMatchRelation(sourceNode, destinationNode, edge.caseStr, aso.sentenceType)
-          //もし一回でも空のリストが返されたらこれ以上分析しても無駄なのでループを抜ける
-          if(tmpList._1.size == 0){
-            b.break()
-          }else{
-            propositionIds = propositionIds ++ tmpList._1
-            searchResults = searchResults ++ tmpList._2
+      val (searchResults, propositionIds) = aso.edgeList.foldLeft((List.empty[List[Neo4jRecordMap]], List.empty[String])){
+        (acc, x) => analyzeGraphKnowledge(x, aso.nodeMap, aso.sentenceType, acc)
+      }
+
+      if(propositionIds.size < aso.edgeList.size) return aso
+      //Pick up the most frequent propositionId
+      val maxFreqSize = propositionIds.groupBy(identity).mapValues(_.size).maxBy(_._2)._2
+      val propositionIdsHavingMaxFreq:List[String] = propositionIds.groupBy(identity).mapValues(_.size).filter(_._2 == maxFreqSize).map(_._1).toList
+      logger.debug(propositionIdsHavingMaxFreq.toString())
+      //If the number of search results with this positionId and the number of edges are equal,
+      //it is assumed that they match exactly. It is no longer a partial match.
+
+      /*
+      propositionIdsHavingMaxFreq.foreach(x => {
+        logger.info("-----------------------------------------------------------------------")
+        logger.info(x)
+        logger.info(aso.edgeList.size.toString)
+        logger.info("-----------------------------------------------------------------------")
+        searchResults.foreach( y => {
+          logger.info(existALlPropositionIdEqualId(x, y).toString)
+        })
+      })
+      */
+      //SynonymNode含め被覆できていれば良いとする。
+      val selectedPropositionIds =  propositionIdsHavingMaxFreq.filter(x => searchResults.filter(y =>  existALlPropositionIdEqualId(x, y)).size >=  aso.edgeList.size)
+
+      if(selectedPropositionIds.size == 0) return aso
+      val status:Boolean = claimCheck match {
+        case true => {
+          selectedPropositionIds.filterNot(havePremiseNode(_)).size match {
+            case 0 => false
+            case _ => true
           }
         }
+        case _ => true
       }
-
-      if(propositionIds.size < aso.edgeList.size){
-        return aso
-      }else{
-        //一番頻度の高いaxiomIdをピックアップ
-        val propositionIdHavingMaxFreq = propositionIds.groupBy(identity).mapValues(_.size).maxBy(_._2)._1
-        logger.debug(propositionIdHavingMaxFreq)
-        //このaxiomIdを持つ検索結果の数とエッジの数が等しければ厳格に一致するとする。部分一致ではなくなる。
-        val selectedList =  searchResults.filter(existALlPropositionIdEqualId(propositionIdHavingMaxFreq, _))
-        if(selectedList.size == aso.edgeList.size){
-          val deductionResult:DeductionResult = new DeductionResult(true, List(propositionIdHavingMaxFreq), "synonym-match")
-          val updateDeductionResultMap = aso.deductionResultMap.updated(aso.sentenceType.toString, deductionResult)
-          return new AnalyzedSentenceObject(aso.nodeMap, aso.edgeList, PREMISE.index, updateDeductionResultMap)
-        }
-      }
-      return aso
+      val deductionResult:DeductionResult = new DeductionResult(status, selectedPropositionIds, "synonym-match")
+      val updateDeductionResultMap = aso.deductionResultMap.updated(aso.sentenceType.toString, deductionResult)
+      AnalyzedSentenceObject(aso.nodeMap, aso.edgeList, aso.sentenceType, updateDeductionResultMap)
 
     }match {
+      case Success(s) => s
       case Failure(e) => throw e
     }
+
+  /**
+   *
+   * @param propositionId
+   * @return
+   */
+  private def havePremiseNode(propositionId:String):Boolean = {
+    val query = "MATCH (m:PremiseNode)-[e:LogicEdge]-(n:ClaimNode) WHERE n.propositionId='%s' return m, e, n".format(propositionId)
+    val jsonStr:String = getCypherQueryResult(query, "")
+    if(jsonStr.equals("""{"records":[]}""")) false
+    else true
+  }
+
+  /**
+   * This function is a sub-function of analyze
+   * @param edge
+   * @param nodeMap
+   * @param sentenceType
+   * @param accParent
+   * @return
+   */
+    private def analyzeGraphKnowledge(edge:KnowledgeBaseEdge, nodeMap:Map[String, KnowledgeBaseNode], sentenceType:Int, accParent:(List[List[Neo4jRecordMap]], List[String])): (List[List[Neo4jRecordMap]], List[String]) = {
+
+      val sourceKey = edge.sourceId
+      val targetKey = edge.destinationId
+      val sourceNode = nodeMap.get(sourceKey).getOrElse().asInstanceOf[KnowledgeBaseNode]
+      val destinationNode = nodeMap.get(targetKey).getOrElse().asInstanceOf[KnowledgeBaseNode]
+
+      val initAcc = sentenceType match{
+        case PREMISE.index => {
+          val (propositionIds, searchResults) = searchMatchRelation(sourceNode, destinationNode, edge.caseStr, CLAIM.index)
+          if(propositionIds.size == 0) return accParent
+          (accParent._1 ++ searchResults, accParent._2 ++ propositionIds)
+        }
+        case _ => accParent
+      }
+
+      val (propositionIds, searchResults) = searchMatchRelation(sourceNode, destinationNode, edge.caseStr, sentenceType)
+      (initAcc._1 ++ searchResults, initAcc._2 ++ propositionIds)
+    }
+
 
     /**
      * This function searches for a subgraph that matches the predicate argument analysis result of the input sentence.
@@ -122,7 +181,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
 
       val nodeType:String = ToposoidUtils.getNodeType(sentenceType)
       //エッジの両側ノードで厳格に一致するものがあるかどうか
-      val queryBoth = "MATCH (n1:%s)-[e]-(n2:%s) WHERE n1.normalizedName='%s' AND n1.isDenial='%s' AND e.caseName='%s' AND n2.normalizedName='%s' AND n2.isDenial='%s' RETURN n1, e, n2".format(nodeType, nodeType,sourceNode.normalizedName, sourceNode.isDenial, caseName, targetNode.normalizedName, targetNode.isDenial)
+      val queryBoth = "MATCH (n1:%s)-[e]-(n2:%s) WHERE n1.normalizedName='%s' AND n1.isDenialWord='%s' AND e.caseName='%s' AND n2.normalizedName='%s' AND n2.isDenialWord='%s' RETURN n1, e, n2".format(nodeType, nodeType,sourceNode.normalizedName, sourceNode.isDenialWord, caseName, targetNode.normalizedName, targetNode.isDenialWord)
       logger.debug(queryBoth)
       val queryBothResultJson: String = getCypherQueryResult(queryBoth, "")
       if (!queryBothResultJson.equals("""{"records":[]}""")) {
@@ -131,7 +190,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
       }else{
         //ヒットするものがない場合
         //上記でヒットしない場合、エッジの片側ノード（Source）で厳格に一致するものがあるかどうか
-        val querySourceOnly = "MATCH (n1:%s)-[e]-(n2:%s) WHERE n1.normalizedName='%s' AND n1.isDenial='%s' AND e.caseName='%s' RETURN n1, e, n2".format(nodeType, nodeType, sourceNode.normalizedName, sourceNode.isDenial, caseName)
+        val querySourceOnly = "MATCH (n1:%s)-[e]-(n2:%s) WHERE n1.normalizedName='%s' AND n1.isDenialWord='%s' AND e.caseName='%s' RETURN n1, e, n2".format(nodeType, nodeType, sourceNode.normalizedName, sourceNode.isDenialWord, caseName)
         logger.debug(querySourceOnly)
         val querySourceOnlyResultJson: String = getCypherQueryResult(querySourceOnly, "")
         if(!querySourceOnlyResultJson.equals("""{"records":[]}""")){
@@ -139,7 +198,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
           checkSynonymNode(sourceNode, targetNode, caseName, MATCHED_SOURCE_NODE_ONLY, sentenceType)
         }else{
           //上記でヒットしない場合、エッジの片側ノード（Target）で厳格に一致するものがあるかどうか
-          val queryTargetOnly = "MATCH (n1:%s)-[e]-(n2:%s) WHERE e.caseName='%s' AND n2.normalizedName='%s' AND n2.isDenial='%s' RETURN n1, e, n2".format(nodeType, nodeType,caseName, targetNode.normalizedName, targetNode.isDenial)
+          val queryTargetOnly = "MATCH (n1:%s)-[e]-(n2:%s) WHERE e.caseName='%s' AND n2.normalizedName='%s' AND n2.isDenialWord='%s' RETURN n1, e, n2".format(nodeType, nodeType,caseName, targetNode.normalizedName, targetNode.isDenialWord)
           logger.debug(queryTargetOnly)
           val queryTargetOnlyResultJson: String = getCypherQueryResult(queryTargetOnly, "")
           if(!queryTargetOnlyResultJson.equals("""{"records":[]}""")){
@@ -162,23 +221,14 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
      * @return
      */
     private def getPropositionIds(neo4jRecords:Neo4jRecords, sourceKey:String, tragetKey:String): (List[String], List[List[Neo4jRecordMap]]) ={
-
-      var axiomIds:List[String] = List.empty[String]
-      var searchResults= List.empty[List[Neo4jRecordMap]]
-      neo4jRecords.records.foreach( record => {
-        searchResults = searchResults :+ record
-        record.foreach { map =>
-          logger.debug(map.key, map.value)
-          if(map.key.equals(sourceKey)){
-            val unit:Neo4jRecodeUnit = map.value
-            axiomIds = axiomIds :+ unit.logicNode.propositionId
-          }else if(map.key.equals(tragetKey)){
-            val unit:Neo4jRecodeUnit = map.value
-            axiomIds = axiomIds :+ unit.logicNode.propositionId
+      val (searchResults, propositionIds) =neo4jRecords.records.foldLeft((List.empty[List[Neo4jRecordMap]], List.empty[String])){
+        (acc, x) => {
+          x.head.value.logicNode.propositionId match {
+            case "" =>  (acc._1 :+ x, acc._2 :+ x.head.value.synonymNode.propositionId)
+            case _ => (acc._1 :+ x, acc._2 :+ x.head.value.logicNode.propositionId)}
           }
-        }
-      })
-      return (axiomIds, searchResults)
+      }
+      (propositionIds, searchResults)
     }
 
     /**
@@ -194,13 +244,13 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
       val nodeType:String = ToposoidUtils.getNodeType(sentenceType)
       val query = relationMatchState match {
         case MATCHED_SOURCE_NODE_ONLY => {
-          "MATCH (n1:%s)-[e]-(n2:%s)<-[se:SynonymEdge]-(sn2:SynonymNode) WHERE n1.normalizedName='%s' AND n1.isDenial='%s' AND e.caseName='%s' AND n2.isDenial='%s' AND sn2.nodeName='%s' RETURN n1, e, sn2".format(nodeType, nodeType,sourceNode.normalizedName, sourceNode.isDenial, caseName, targetNode.isDenial, targetNode.normalizedName)
+          "MATCH (n1:%s)-[e]-(n2:%s)<-[se:SynonymEdge]-(sn2:SynonymNode) WHERE n1.normalizedName='%s' AND n1.isDenialWord='%s' AND e.caseName='%s' AND n2.isDenialWord='%s' AND sn2.nodeName='%s' RETURN n1, e, sn2".format(nodeType, nodeType,sourceNode.normalizedName, sourceNode.isDenialWord, caseName, targetNode.isDenialWord, targetNode.normalizedName)
         }
         case MATCHED_TARGET_NODE_ONLY => {
-          "MATCH (sn1:SynonymNode)-[se:SynonymEdge]->(n1:%s)-[e]-(n2:%s) WHERE sn1.nodeName='%s' AND n1.isDenial='%s' AND e.caseName='%s' AND n2.normalizedName='%s' AND n2.isDenial='%s' RETURN sn1, e, n2".format(nodeType, nodeType,sourceNode.normalizedName, sourceNode.isDenial, caseName, targetNode.normalizedName, targetNode.isDenial)
+          "MATCH (sn1:SynonymNode)-[se:SynonymEdge]->(n1:%s)-[e]-(n2:%s) WHERE sn1.nodeName='%s' AND n1.isDenialWord='%s' AND e.caseName='%s' AND n2.normalizedName='%s' AND n2.isDenialWord='%s' RETURN sn1, e, n2".format(nodeType, nodeType,sourceNode.normalizedName, sourceNode.isDenialWord, caseName, targetNode.normalizedName, targetNode.isDenialWord)
         }
         case NOT_MATCHED => {
-          "MATCH (sn1:SynonymNode)-[se1:SynonymEdge]->(n1:%s)-[e]-(n2:%s)<-[se2:SynonymEdge]-(sn2:SynonymNode) WHERE sn1.nodeName='%s' AND n1.isDenial='%s' AND e.caseName='%s' AND n2.isDenial='%s' AND sn2.nodeName='%s' RETURN sn1, e, sn2".format(nodeType, nodeType,sourceNode.normalizedName, sourceNode.isDenial, caseName, targetNode.isDenial, targetNode.normalizedName)
+          "MATCH (sn1:SynonymNode)-[se1:SynonymEdge]->(n1:%s)-[e]-(n2:%s)<-[se2:SynonymEdge]-(sn2:SynonymNode) WHERE sn1.nodeName='%s' AND n1.isDenialWord='%s' AND e.caseName='%s' AND n2.isDenialWord='%s' AND sn2.nodeName='%s' RETURN sn1, e, sn2".format(nodeType, nodeType,sourceNode.normalizedName, sourceNode.isDenialWord, caseName, targetNode.isDenialWord, targetNode.normalizedName)
         }
       }
       val resultJson: String = getCypherQueryResult(query, "")
