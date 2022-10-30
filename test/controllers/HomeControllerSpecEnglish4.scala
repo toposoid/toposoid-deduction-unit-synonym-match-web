@@ -53,21 +53,6 @@ class HomeControllerSpecEnglish4 extends PlaySpec with BeforeAndAfter with Befor
   override implicit def defaultAwaitTimeout: Timeout = 600.seconds
   val controller: HomeController = inject[HomeController]
 
-/*
-Mark has overcome many hardships.
-Mark has overcome many adversity.
-
-He has a good chance.
-He has a good opportunity.
-
-His life is so comfortable now.
-His Living is so comfortable now.
-
-It's always darkest before the dawn.
-It's always darkest before the morning.
- */
-
-
   "The specification31" should {
     "returns an appropriate response" in {
       Sentence2Neo4jTransformer.createGraphAuto(List(UUID.random.toString), List(Knowledge("Mark has overcome many hardships.","en_US", "{}", false)))
