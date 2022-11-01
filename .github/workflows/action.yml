@@ -40,8 +40,6 @@ jobs:
             docker-compose -f docker-compose-workflow.yml up -d toposoid-sentence-parser-english-web
             docker-compose -f docker-compose-workflow.yml restart -d neo4j
             docker-compose -f docker-compose-workflow.yml restart -d scala-data-accessor-neo4j-web
-            curl -X POST  -d 'Life is beautiful.' http://127.0.0.1:9000
-            curl -X POST -H "Content-Type: application/json" -d '{"sentence":"Life is beautiful.","lang":"en_US","extentInfoJson":"{}","isNegativeSentence":false,}' http://127.0.0.1:9007/analyzeOneSentence
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt 'testOnly **.*English1'"
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt 'testOnly **.*English2'"
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt 'testOnly **.*English3'"
