@@ -56,7 +56,7 @@ class HomeControllerSpecEnglish1 extends PlaySpec with BeforeAndAfter with Befor
 
   "The specification1" should {
     "returns an appropriate response" in {
-      Sentence2Neo4jTransformer .createGraphAuto(List(UUID.random.toString), List(Knowledge("Mark has overcome many hardships.","en_US", "{}", false)))
+      Sentence2Neo4jTransformer.createGraphAuto(List(UUID.random.toString), List(Knowledge("Mark has overcome many hardships.","en_US", "{}", false)))
       val inputSentence = Json.toJson(InputSentence(List.empty[Knowledge], List(Knowledge("Mark has overcome many adversity.","en_US", "{}", false)))).toString()
       val json = ToposoidUtils.callComponent(inputSentence, conf.getString("SENTENCE_PARSER_EN_WEB_HOST"), "9007", "analyze")
       val fr = FakeRequest(POST, "/execute")
