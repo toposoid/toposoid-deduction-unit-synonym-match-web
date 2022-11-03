@@ -88,10 +88,15 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
         (acc, x) => analyzeGraphKnowledge(x, aso.nodeMap, aso.sentenceType, acc)
       }
 
-      if(propositionIds.size < aso.edgeList.size) return aso
+      val targetPropositionIds =  claimCheck match {
+        case true => propositionIds.filterNot(havePremiseNode(_))
+        case _ => propositionIds
+      }
+
+      if(targetPropositionIds.size < aso.edgeList.size) return aso
       //Pick up the most frequent propositionId
-      val maxFreqSize = propositionIds.groupBy(identity).mapValues(_.size).maxBy(_._2)._2
-      val propositionIdsHavingMaxFreq:List[String] = propositionIds.groupBy(identity).mapValues(_.size).filter(_._2 == maxFreqSize).map(_._1).toList
+      val maxFreqSize = targetPropositionIds.groupBy(identity).mapValues(_.size).maxBy(_._2)._2
+      val propositionIdsHavingMaxFreq:List[String] = targetPropositionIds.groupBy(identity).mapValues(_.size).filter(_._2 == maxFreqSize).map(_._1).toList
       logger.debug(propositionIdsHavingMaxFreq.toString())
       //If the number of search results with this positionId and the number of edges are equal,
       //it is assumed that they match exactly. It is no longer a partial match.
@@ -108,19 +113,11 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
       })
       */
       //SynonymNode含め被覆できていれば良いとする。
-      val selectedPropositionIds =  propositionIdsHavingMaxFreq.filter(x => searchResults.filter(y =>  existALlPropositionIdEqualId(x, y)).size >=  aso.edgeList.size)
+      val coveredPropositionIds =  propositionIdsHavingMaxFreq.filter(x => searchResults.filter(y =>  existALlPropositionIdEqualId(x, y)).size >=  aso.edgeList.size)
+      if(coveredPropositionIds.size == 0) return aso
 
-      if(selectedPropositionIds.size == 0) return aso
-      val status:Boolean = claimCheck match {
-        case true => {
-          selectedPropositionIds.filterNot(havePremiseNode(_)).size match {
-            case 0 => false
-            case _ => true
-          }
-        }
-        case _ => true
-      }
-      val deductionResult:DeductionResult = new DeductionResult(status, selectedPropositionIds, "synonym-match")
+      val status = true
+      val deductionResult:DeductionResult = new DeductionResult(status, coveredPropositionIds, "synonym-match")
       val updateDeductionResultMap = aso.deductionResultMap.updated(aso.sentenceType.toString, deductionResult)
       AnalyzedSentenceObject(aso.nodeMap, aso.edgeList, aso.sentenceType, updateDeductionResultMap)
 
