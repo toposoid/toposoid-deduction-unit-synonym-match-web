@@ -3,8 +3,8 @@
 | TestNo | Deduciton's Pattern | Registed Knowledge | Premise Macth | Craim Match |
 | - | - | - | - | - |
 |1 | Claim:A | Claim:A | FALSE | TRUE |
-|2 | Claim:A | Premise:A | FALSE | FALSE |
-|3 | Claim:A | A → B | FALSE | FALSE |
+|2 | Claim:A | A → B | FALSE | FALSE |
+|3 | Claim:B | A → B | FALSE | FALSE |
 |4 | Claim:A | B → A,   B | FALSE | TRUE |
 |5 | A → B | A | FALSE | FALSE |
 |6 | A → B | B | FALSE | TRUE |
