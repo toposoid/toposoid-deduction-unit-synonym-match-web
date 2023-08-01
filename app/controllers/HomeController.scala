@@ -219,7 +219,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
 
     val nodeType:String = ToposoidUtils.getNodeType(sentenceType)
     //エッジの両側ノードで厳格に一致するものがあるかどうか
-    val queryBoth = "MATCH (n1:%s)-[e]-(n2:%s) WHERE n1.normalizedName='%s' AND n1.isDenialWord='%s' AND e.caseName='%s' AND n2.normalizedName='%s' AND n2.isDenialWord='%s' RETURN n1, e, n2".format(nodeType, nodeType,sourceNode.normalizedName, sourceNode.isDenialWord, caseName, targetNode.normalizedName, targetNode.isDenialWord)
+    val queryBoth = "MATCH (n1:%s)-[e]-(n2:%s) WHERE n1.normalizedName='%s' AND n1.isDenialWord='%s' AND e.caseName='%s' AND n2.normalizedName='%s' AND n2.isDenialWord='%s' RETURN n1, e, n2".format(nodeType, nodeType,sourceNode.predicateArgumentStructure.normalizedName, sourceNode.predicateArgumentStructure.isDenialWord, caseName, targetNode.predicateArgumentStructure.normalizedName, targetNode.predicateArgumentStructure.isDenialWord)
     logger.debug(queryBoth)
     val queryBothResultJson: String = getCypherQueryResult(queryBoth, "")
     if (!queryBothResultJson.equals("""{"records":[]}""")) {
@@ -228,7 +228,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
     }else{
       //ヒットするものがない場合
       //上記でヒットしない場合、エッジの片側ノード（Source）で厳格に一致するものがあるかどうか
-      val querySourceOnly = "MATCH (n1:%s)-[e]-(n2:%s) WHERE n1.normalizedName='%s' AND n1.isDenialWord='%s' AND e.caseName='%s' RETURN n1, e, n2".format(nodeType, nodeType, sourceNode.normalizedName, sourceNode.isDenialWord, caseName)
+      val querySourceOnly = "MATCH (n1:%s)-[e]-(n2:%s) WHERE n1.normalizedName='%s' AND n1.isDenialWord='%s' AND e.caseName='%s' RETURN n1, e, n2".format(nodeType, nodeType, sourceNode.predicateArgumentStructure.normalizedName, sourceNode.predicateArgumentStructure.isDenialWord, caseName)
       logger.debug(querySourceOnly)
       val querySourceOnlyResultJson: String = getCypherQueryResult(querySourceOnly, "")
       if(!querySourceOnlyResultJson.equals("""{"records":[]}""")){
@@ -236,7 +236,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
         checkSynonymNode(sourceNode, targetNode, caseName, MATCHED_SOURCE_NODE_ONLY, sentenceType)
       }else{
         //上記でヒットしない場合、エッジの片側ノード（Target）で厳格に一致するものがあるかどうか
-        val queryTargetOnly = "MATCH (n1:%s)-[e]-(n2:%s) WHERE e.caseName='%s' AND n2.normalizedName='%s' AND n2.isDenialWord='%s' RETURN n1, e, n2".format(nodeType, nodeType,caseName, targetNode.normalizedName, targetNode.isDenialWord)
+        val queryTargetOnly = "MATCH (n1:%s)-[e]-(n2:%s) WHERE e.caseName='%s' AND n2.normalizedName='%s' AND n2.isDenialWord='%s' RETURN n1, e, n2".format(nodeType, nodeType,caseName, targetNode.predicateArgumentStructure.normalizedName, targetNode.predicateArgumentStructure.isDenialWord)
         logger.debug(queryTargetOnly)
         val queryTargetOnlyResultJson: String = getCypherQueryResult(queryTargetOnly, "")
         if(!queryTargetOnlyResultJson.equals("""{"records":[]}""")){
@@ -282,13 +282,13 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
     val nodeType:String = ToposoidUtils.getNodeType(sentenceType)
     val query = relationMatchState match {
       case MATCHED_SOURCE_NODE_ONLY => {
-        "MATCH (n1:%s)-[e]-(n2:%s)<-[se:SynonymEdge]-(sn2:SynonymNode) WHERE n1.normalizedName='%s' AND n1.isDenialWord='%s' AND e.caseName='%s' AND n2.isDenialWord='%s' AND sn2.nodeName='%s' RETURN n1, e, sn2".format(nodeType, nodeType,sourceNode.normalizedName, sourceNode.isDenialWord, caseName, targetNode.isDenialWord, targetNode.normalizedName)
+        "MATCH (n1:%s)-[e]-(n2:%s)<-[se:SynonymEdge]-(sn2:SynonymNode) WHERE n1.normalizedName='%s' AND n1.isDenialWord='%s' AND e.caseName='%s' AND n2.isDenialWord='%s' AND sn2.nodeName='%s' RETURN n1, e, sn2".format(nodeType, nodeType,sourceNode.predicateArgumentStructure.normalizedName, sourceNode.predicateArgumentStructure.isDenialWord, caseName, targetNode.predicateArgumentStructure.isDenialWord, targetNode.predicateArgumentStructure.normalizedName)
       }
       case MATCHED_TARGET_NODE_ONLY => {
-        "MATCH (sn1:SynonymNode)-[se:SynonymEdge]->(n1:%s)-[e]-(n2:%s) WHERE sn1.nodeName='%s' AND n1.isDenialWord='%s' AND e.caseName='%s' AND n2.normalizedName='%s' AND n2.isDenialWord='%s' RETURN sn1, e, n2".format(nodeType, nodeType,sourceNode.normalizedName, sourceNode.isDenialWord, caseName, targetNode.normalizedName, targetNode.isDenialWord)
+        "MATCH (sn1:SynonymNode)-[se:SynonymEdge]->(n1:%s)-[e]-(n2:%s) WHERE sn1.nodeName='%s' AND n1.isDenialWord='%s' AND e.caseName='%s' AND n2.normalizedName='%s' AND n2.isDenialWord='%s' RETURN sn1, e, n2".format(nodeType, nodeType,sourceNode.predicateArgumentStructure.normalizedName, sourceNode.predicateArgumentStructure.isDenialWord, caseName, targetNode.predicateArgumentStructure.normalizedName, targetNode.predicateArgumentStructure.isDenialWord)
       }
       case NOT_MATCHED => {
-        "MATCH (sn1:SynonymNode)-[se1:SynonymEdge]->(n1:%s)-[e]-(n2:%s)<-[se2:SynonymEdge]-(sn2:SynonymNode) WHERE sn1.nodeName='%s' AND n1.isDenialWord='%s' AND e.caseName='%s' AND n2.isDenialWord='%s' AND sn2.nodeName='%s' RETURN sn1, e, sn2".format(nodeType, nodeType,sourceNode.normalizedName, sourceNode.isDenialWord, caseName, targetNode.isDenialWord, targetNode.normalizedName)
+        "MATCH (sn1:SynonymNode)-[se1:SynonymEdge]->(n1:%s)-[e]-(n2:%s)<-[se2:SynonymEdge]-(sn2:SynonymNode) WHERE sn1.nodeName='%s' AND n1.isDenialWord='%s' AND e.caseName='%s' AND n2.isDenialWord='%s' AND sn2.nodeName='%s' RETURN sn1, e, sn2".format(nodeType, nodeType,sourceNode.predicateArgumentStructure.normalizedName, sourceNode.predicateArgumentStructure.isDenialWord, caseName, targetNode.predicateArgumentStructure.isDenialWord, targetNode.predicateArgumentStructure.normalizedName)
       }
     }
     val resultJson: String = getCypherQueryResult(query, "")
