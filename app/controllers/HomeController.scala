@@ -49,7 +49,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
       val analyzedSentenceObjects: AnalyzedSentenceObjects = Json.parse(json.toString).as[AnalyzedSentenceObjects]
       val asos: List[AnalyzedSentenceObject] = analyzedSentenceObjects.analyzedSentenceObjects
       val result: List[AnalyzedSentenceObject] = asos.foldLeft(List.empty[AnalyzedSentenceObject]) {
-        (acc, x) => acc :+ analyze(x, acc)
+        (acc, x) => acc :+ analyze(x, acc, "synonym-match")
       }
       Ok(Json.toJson(AnalyzedSentenceObjects(result))).as(JSON)
     } catch {
