@@ -205,7 +205,7 @@ class HomeControllerSpecEnglish1 extends PlaySpec with BeforeAndAfter with Befor
       val sentenceId3 = UUID.random.toString
       val knowledge1 = Knowledge(sentenceA,"en_US", "{}")
       val knowledge2 = Knowledge(sentenceB,"en_US", "{}")
-      val paraphrase1 = Knowledge(paraphraseA,"en_US", "{}", false)
+      val paraphrase1 = Knowledge(paraphraseB,"en_US", "{}", false)
       registSingleClaim(KnowledgeForParser(propositionId1, sentenceId1, knowledge1))
 
       val knowledgeSentenceSetForParser = KnowledgeSentenceSetForParser(
