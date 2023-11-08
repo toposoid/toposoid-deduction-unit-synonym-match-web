@@ -17,12 +17,12 @@
 package controllers
 
 
-import com.ideal.linked.toposoid.protocol.model.base.{AnalyzedSentenceObject, AnalyzedSentenceObjects, MatchedFeatureInfo, MatchedPropositionInfo}
+import com.ideal.linked.toposoid.protocol.model.base.{AnalyzedSentenceObject, AnalyzedSentenceObjects, CoveredPropositionEdge, CoveredPropositionNode, MatchedFeatureInfo, MatchedPropositionInfo}
 import com.ideal.linked.toposoid.protocol.model.neo4j.{Neo4jRecordMap, Neo4jRecords}
-import com.ideal.linked.toposoid.common.{CLAIM, PREMISE, ToposoidUtils}
-import com.ideal.linked.toposoid.deduction.common.{DeductionUnitController}
+import com.ideal.linked.toposoid.common.{CLAIM, LOCAL, PREDICATE_ARGUMENT, PREMISE, ToposoidUtils}
+import com.ideal.linked.toposoid.deduction.common.DeductionUnitController
 import com.typesafe.scalalogging.LazyLogging
-import com.ideal.linked.toposoid.deduction.common.FacadeForAccessNeo4J.{getCypherQueryResult}
+import com.ideal.linked.toposoid.deduction.common.FacadeForAccessNeo4J.getCypherQueryResult
 import com.ideal.linked.toposoid.knowledgebase.model.{KnowledgeBaseEdge, KnowledgeBaseNode}
 
 import javax.inject._
@@ -70,22 +70,24 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
    * @param accParent
    * @return
    */
-  def analyzeGraphKnowledge(edge: KnowledgeBaseEdge, nodeMap: Map[String, KnowledgeBaseNode], sentenceType: Int, accParent: (List[List[Neo4jRecordMap]], List[MatchedPropositionInfo])): (List[List[Neo4jRecordMap]], List[MatchedPropositionInfo]) = {
+  def analyzeGraphKnowledge(edge: KnowledgeBaseEdge, nodeMap: Map[String, KnowledgeBaseNode], sentenceType: Int, accParent: (List[List[Neo4jRecordMap]], List[MatchedPropositionInfo], List[CoveredPropositionEdge])): (List[List[Neo4jRecordMap]], List[MatchedPropositionInfo], List[CoveredPropositionEdge]) = {
     val sourceKey = edge.sourceId
     val targetKey = edge.destinationId
     val sourceNode = nodeMap.get(sourceKey).getOrElse().asInstanceOf[KnowledgeBaseNode]
     val destinationNode = nodeMap.get(targetKey).getOrElse().asInstanceOf[KnowledgeBaseNode]
 
-    val initAcc: (List[List[Neo4jRecordMap]], List[MatchedPropositionInfo]) = sentenceType match {
+    val initAcc: (List[List[Neo4jRecordMap]], List[MatchedPropositionInfo], List[CoveredPropositionEdge]) = sentenceType match {
       case PREMISE.index => {
-        val (searchResults, matchedPropositionInfoList) = searchMatchRelation(sourceNode, destinationNode, edge.caseStr, CLAIM.index)
+        val (searchResults, matchedPropositionInfoList, coveredPropositionEdgeList) = searchMatchRelation(sourceNode, destinationNode, edge.caseStr, CLAIM.index)
         if (matchedPropositionInfoList.size == 0) return accParent
-        (accParent._1 ::: searchResults, accParent._2 ::: matchedPropositionInfoList)
+
+        (accParent._1 ::: searchResults, accParent._2 ::: matchedPropositionInfoList, accParent._3 ::: coveredPropositionEdgeList)
       }
       case _ => accParent
     }
-    val (searchResults, matchedPropositionInfoList) = searchMatchRelation(sourceNode, destinationNode, edge.caseStr, sentenceType)
-    (initAcc._1 ::: searchResults, initAcc._2 ::: matchedPropositionInfoList)
+    val (searchResults, matchedPropositionInfoList, coveredPropositionEdgeList) = searchMatchRelation(sourceNode, destinationNode, edge.caseStr, sentenceType)
+
+    (initAcc._1 ::: searchResults, initAcc._2 ::: matchedPropositionInfoList, initAcc._3 ::: coveredPropositionEdgeList)
 
   }
 
@@ -98,16 +100,18 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
    * @param caseName
    * @return
    */
-  private def searchMatchRelation(sourceNode: KnowledgeBaseNode, targetNode: KnowledgeBaseNode, caseName: String, sentenceType: Int): (List[List[Neo4jRecordMap]], List[MatchedPropositionInfo]) = {
+  private def searchMatchRelation(sourceNode: KnowledgeBaseNode, targetNode: KnowledgeBaseNode, caseName: String, sentenceType: Int): (List[List[Neo4jRecordMap]], List[MatchedPropositionInfo], List[CoveredPropositionEdge]) = {
 
-    val nodeType: String = ToposoidUtils.getNodeType(sentenceType)
+    val nodeType: String = ToposoidUtils.getNodeType(sentenceType, LOCAL.index, PREDICATE_ARGUMENT.index)
+    val sourceSurface = sourceNode.predicateArgumentStructure.surface
+    val targetSurface = targetNode.predicateArgumentStructure.surface
     //エッジの両側ノードで厳格に一致するものがあるかどうか
     val queryBoth = "MATCH (n1:%s)-[e]-(n2:%s) WHERE n1.normalizedName='%s' AND n1.isDenialWord='%s' AND e.caseName='%s' AND n2.normalizedName='%s' AND n2.isDenialWord='%s' RETURN n1, e, n2".format(nodeType, nodeType, sourceNode.predicateArgumentStructure.normalizedName, sourceNode.predicateArgumentStructure.isDenialWord, caseName, targetNode.predicateArgumentStructure.normalizedName, targetNode.predicateArgumentStructure.isDenialWord)
     logger.debug(queryBoth)
     val queryBothResultJson: String = getCypherQueryResult(queryBoth, "")
     if (!queryBothResultJson.equals("""{"records":[]}""")) {
       //ヒットするものがある場合
-      getMatchedPropositionInfo(Json.parse(queryBothResultJson).as[Neo4jRecords], "n1", "n2")
+      getMatchedPropositionInfo(Json.parse(queryBothResultJson).as[Neo4jRecords], sourceNode, targetNode)
     } else {
       //ヒットするものがない場合
       //上記でヒットしない場合、エッジの片側ノード（Source）で厳格に一致するものがあるかどうか
@@ -142,23 +146,25 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
    * @param tragetKey
    * @return
    */
-  private def getMatchedPropositionInfo(neo4jRecords: Neo4jRecords, sourceKey: String, tragetKey: String): (List[List[Neo4jRecordMap]], List[MatchedPropositionInfo]) = {
-
-    val (searchResults, matchPropositionInfoList) = neo4jRecords.records.foldLeft((List.empty[List[Neo4jRecordMap]], List.empty[MatchedPropositionInfo])) {
+  private def getMatchedPropositionInfo(neo4jRecords: Neo4jRecords, sourceProblemNode: KnowledgeBaseNode, targetProblemNode: KnowledgeBaseNode): (List[List[Neo4jRecordMap]], List[MatchedPropositionInfo], List[CoveredPropositionEdge]) = {
+    val (searchResults, matchPropositionInfoList, coveredPropositionEdgeList) = neo4jRecords.records.foldLeft((List.empty[List[Neo4jRecordMap]], List.empty[MatchedPropositionInfo], List.empty[CoveredPropositionEdge])) {
       (acc, x) => {
-        x.head.value.logicNode.propositionId match {
+        val matchPropositionInfo = x.head.value.logicNode.propositionId match {
           case "" => {
-            val matchPropositionInfo = MatchedPropositionInfo(x.head.value.synonymNode.propositionId, List(MatchedFeatureInfo(x.head.value.synonymNode.sentenceId, 1)))
-            (acc._1 :+ x, acc._2 :+ matchPropositionInfo)
+            MatchedPropositionInfo(x.head.value.synonymNode.propositionId, List(MatchedFeatureInfo(x.head.value.synonymNode.sentenceId, 1)))
           }
           case _ => {
-            val matchPropositionInfo = MatchedPropositionInfo(x.head.value.logicNode.propositionId, List(MatchedFeatureInfo(x.head.value.logicNode.sentenceId, 1)))
-            (acc._1 :+ x, acc._2 :+ matchPropositionInfo)
+            MatchedPropositionInfo(x.head.value.logicNode.propositionId, List(MatchedFeatureInfo(x.head.value.logicNode.sentenceId, 1)))
           }
         }
+        val sourceNode = CoveredPropositionNode(terminalId = sourceProblemNode.nodeId, terminalSurface = sourceProblemNode.predicateArgumentStructure.surface, terminalUrl = "")
+        val destinationNode = CoveredPropositionNode(terminalId = targetProblemNode.nodeId, terminalSurface = targetProblemNode.predicateArgumentStructure.surface, terminalUrl = "")
+        val coveredPropositionEdgeList = CoveredPropositionEdge(sourceNode = sourceNode, destinationNode = destinationNode)
+        (acc._1 :+ x, acc._2 :+ matchPropositionInfo, acc._3 :+ coveredPropositionEdgeList)
+
       }
     }
-    (searchResults, matchPropositionInfoList)
+    (searchResults, matchPropositionInfoList, coveredPropositionEdgeList)
   }
 
   /**
@@ -170,9 +176,9 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
    * @param relationMatchState
    * @return
    */
-  private def checkSynonymNode(sourceNode: KnowledgeBaseNode, targetNode: KnowledgeBaseNode, caseName: String, relationMatchState: RelationMatchState, sentenceType: Int): (List[List[Neo4jRecordMap]], List[MatchedPropositionInfo]) = {
+  private def checkSynonymNode(sourceNode: KnowledgeBaseNode, targetNode: KnowledgeBaseNode, caseName: String, relationMatchState: RelationMatchState, sentenceType: Int): (List[List[Neo4jRecordMap]], List[MatchedPropositionInfo], List[CoveredPropositionEdge]) = {
 
-    val nodeType: String = ToposoidUtils.getNodeType(sentenceType)
+    val nodeType: String = ToposoidUtils.getNodeType(sentenceType, LOCAL.index, PREDICATE_ARGUMENT.index)
     val query = relationMatchState match {
       case MATCHED_SOURCE_NODE_ONLY => {
         "MATCH (n1:%s)-[e]-(n2:%s)<-[se:SynonymEdge]-(sn2:SynonymNode) WHERE n1.normalizedName='%s' AND n1.isDenialWord='%s' AND e.caseName='%s' AND n2.isDenialWord='%s' AND sn2.nodeName='%s' RETURN n1, e, sn2".format(nodeType, nodeType, sourceNode.predicateArgumentStructure.normalizedName, sourceNode.predicateArgumentStructure.isDenialWord, caseName, targetNode.predicateArgumentStructure.isDenialWord, targetNode.predicateArgumentStructure.normalizedName)
@@ -187,19 +193,9 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
     val resultJson: String = getCypherQueryResult(query, "")
     logger.debug(query)
     if (resultJson.equals("""{"records":[]}""")) {
-      (List.empty[List[Neo4jRecordMap]], List.empty[MatchedPropositionInfo])
+      (List.empty[List[Neo4jRecordMap]], List.empty[MatchedPropositionInfo], List.empty[CoveredPropositionEdge])
     } else {
-      relationMatchState match {
-        case MATCHED_SOURCE_NODE_ONLY => {
-          getMatchedPropositionInfo(Json.parse(resultJson).as[Neo4jRecords], "n1", "sn2")
-        }
-        case MATCHED_TARGET_NODE_ONLY => {
-          getMatchedPropositionInfo(Json.parse(resultJson).as[Neo4jRecords], "sn1", "n2")
-        }
-        case NOT_MATCHED => {
-          getMatchedPropositionInfo(Json.parse(resultJson).as[Neo4jRecords], "sn1", "sn2")
-        }
-      }
+      getMatchedPropositionInfo(Json.parse(resultJson).as[Neo4jRecords], sourceNode, targetNode)
     }
   }
 
