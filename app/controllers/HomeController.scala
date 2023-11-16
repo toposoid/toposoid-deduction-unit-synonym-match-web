@@ -149,12 +149,12 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
   private def getMatchedPropositionInfo(neo4jRecords: Neo4jRecords, sourceProblemNode: KnowledgeBaseNode, targetProblemNode: KnowledgeBaseNode): (List[List[Neo4jRecordMap]], List[MatchedPropositionInfo], List[CoveredPropositionEdge]) = {
     val (searchResults, matchPropositionInfoList, coveredPropositionEdgeList) = neo4jRecords.records.foldLeft((List.empty[List[Neo4jRecordMap]], List.empty[MatchedPropositionInfo], List.empty[CoveredPropositionEdge])) {
       (acc, x) => {
-        val matchPropositionInfo = x.head.value.logicNode.propositionId match {
-          case "" => {
-            MatchedPropositionInfo(x.head.value.synonymNode.propositionId, List(MatchedFeatureInfo(x.head.value.synonymNode.sentenceId, 1)))
+        val matchPropositionInfo = x.head.value.synonymNode match {
+          case Some(y) => {
+            MatchedPropositionInfo(y.propositionId, List(MatchedFeatureInfo(y.sentenceId, 1)))
           }
           case _ => {
-            MatchedPropositionInfo(x.head.value.logicNode.propositionId, List(MatchedFeatureInfo(x.head.value.logicNode.sentenceId, 1)))
+            MatchedPropositionInfo(x.head.value.localNode.get.propositionId, List(MatchedFeatureInfo(x.head.value.localNode.get.sentenceId, 1)))
           }
         }
         val sourceNode = CoveredPropositionNode(terminalId = sourceProblemNode.nodeId, terminalSurface = sourceProblemNode.predicateArgumentStructure.surface, terminalUrl = "")
