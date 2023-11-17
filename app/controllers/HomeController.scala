@@ -70,7 +70,10 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
    * @param accParent
    * @return
    */
-  def analyzeGraphKnowledge(edge: KnowledgeBaseEdge, nodeMap: Map[String, KnowledgeBaseNode], sentenceType: Int, accParent: (List[List[Neo4jRecordMap]], List[MatchedPropositionInfo], List[CoveredPropositionEdge])): (List[List[Neo4jRecordMap]], List[MatchedPropositionInfo], List[CoveredPropositionEdge]) = {
+  def analyzeGraphKnowledge(edge: KnowledgeBaseEdge, aso:AnalyzedSentenceObject, accParent: (List[List[Neo4jRecordMap]], List[MatchedPropositionInfo], List[CoveredPropositionEdge])): (List[List[Neo4jRecordMap]], List[MatchedPropositionInfo], List[CoveredPropositionEdge]) = {
+
+    val nodeMap: Map[String, KnowledgeBaseNode] =  aso.nodeMap
+    val sentenceType = aso.knowledgeBaseSemiGlobalNode.sentenceType
     val sourceKey = edge.sourceId
     val targetKey = edge.destinationId
     val sourceNode = nodeMap.get(sourceKey).getOrElse().asInstanceOf[KnowledgeBaseNode]
