@@ -321,6 +321,7 @@ class HomeControllerSpecJapanese3 extends PlaySpec with BeforeAndAfter with Befo
       val propositionId2 = UUID.random.toString
       val sentenceId1 = UUID.random.toString
       val sentenceId2 = UUID.random.toString
+      val sentenceId3 = UUID.random.toString
       val knowledge1 = Knowledge(sentenceA,"ja_JP", "{}", false)
       //val knowledge2 = Knowledge(sentenceB,"ja_JP", "{}", false)
       val knowledge3 = Knowledge(sentenceC,"ja_JP", "{}", false)
@@ -334,7 +335,7 @@ class HomeControllerSpecJapanese3 extends PlaySpec with BeforeAndAfter with Befo
       val knowledgeSentenceSetForParser = KnowledgeSentenceSetForParser(
         List(KnowledgeForParser(propositionId2, sentenceId2, knowledge1)),
         List.empty[PropositionRelation],
-        List(KnowledgeForParser(propositionId2, sentenceId2, knowledge3)),
+        List(KnowledgeForParser(propositionId2, sentenceId3, knowledge3)),
         List.empty[PropositionRelation])
       Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser)
       val propositionIdForInference = UUID.random.toString

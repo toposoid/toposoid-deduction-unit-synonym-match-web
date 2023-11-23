@@ -422,9 +422,9 @@ class HomeControllerSpecEnglish4 extends PlaySpec with BeforeAndAfter with Befor
       val sentenceId4 = UUID.random.toString
       val sentenceId5 = UUID.random.toString
       val knowledge1 = Knowledge(sentenceA,"en_US", "{}", false)
-      //val knowledge2 = Knowledge(sentenceB,"en_US", "{}", false)
-      //val knowledge3 = Knowledge(sentenceC,"en_US", "{}", false)
-      //val knowledge4 = Knowledge(sentenceD,"en_US", "{}", false)
+      val knowledge2 = Knowledge(sentenceB,"en_US", "{}", false)
+      val knowledge3 = Knowledge(sentenceC,"en_US", "{}", false)
+      val knowledge4 = Knowledge(sentenceD,"en_US", "{}", false)
 
       val paraphrase1 = Knowledge(paraphraseA,"en_US", "{}", false)
       val paraphrase2 = Knowledge(paraphraseB,"en_US", "{}", false)
@@ -434,9 +434,9 @@ class HomeControllerSpecEnglish4 extends PlaySpec with BeforeAndAfter with Befor
       registSingleClaim(KnowledgeForParser(propositionId1, sentenceId1, knowledge1))
 
       val knowledgeSentenceSetForParser = KnowledgeSentenceSetForParser(
-        List(KnowledgeForParser(propositionId2, sentenceId2, paraphrase1), KnowledgeForParser(propositionId2, sentenceId3, paraphrase2)),
+        List(KnowledgeForParser(propositionId2, sentenceId2, knowledge1), KnowledgeForParser(propositionId2, sentenceId3, knowledge2)),
         List(PropositionRelation("AND", 0,1)),
-        List(KnowledgeForParser(propositionId2, sentenceId4, paraphrase3), KnowledgeForParser(propositionId2, sentenceId5, paraphrase4)),
+        List(KnowledgeForParser(propositionId2, sentenceId4, knowledge3), KnowledgeForParser(propositionId2, sentenceId5, knowledge4)),
         List(PropositionRelation("AND", 0,1)))
       Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser)
       val propositionIdForInference = UUID.random.toString
