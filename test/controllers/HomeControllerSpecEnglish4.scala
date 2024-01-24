@@ -53,12 +53,12 @@ class HomeControllerSpecEnglish4 extends PlaySpec with BeforeAndAfter with Befor
 
   override implicit def defaultAwaitTimeout: Timeout = 600.seconds
   val controller: HomeController = inject[HomeController]
-  val sentenceA = "Mark has overcome many hardships."
+  val sentenceA = "Mark has overcome many problems."
   val sentenceB = "He has a good chance."
   val sentenceC = "His life is so comfortable now."
   val sentenceD = "It's always darkest before the dawn."
 
-  val paraphraseA = "Mark has overcome many adversity."
+  val paraphraseA = "Mark has overcome many troubles."
   val paraphraseB = "He has a good opportunity."
   val paraphraseC = "His living is so comfortable now."
   val paraphraseD = "It's always darkest before the morning."
