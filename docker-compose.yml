@@ -1,23 +1,12 @@
 version: '3'
-networks:
-  app_net:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.30.0.0/24
-
 services:
   toposoid-deduction-unit-synonym-match-web:
     image: toposoid/toposoid-deduction-unit-synonym-match-web:0.5-SNAPSHOT
     environment:
       - PRIVATE_IP_ADDRESS=localhost
-      - TOPOSOID_GRAPHDB_HOST=172.30.0.2
-      - TOPOSOID_GRAPHDB__WEB_HOST=172.30.0.3
+      - TOPOSOID_GRAPHDB_HOST=neo4j
+      - TOPOSOID_GRAPHDB__WEB_HOST=scala-data-accessor-neo4j-web
       - PLAY_HTTP_PORT=9102
-    networks:
-      app_net:
-        ipv4_address: 172.30.0.4
     ports:
       - 9102:9102
     depends_on:
@@ -25,12 +14,9 @@ services:
   scala-data-accessor-neo4j-web:
     image: toposoid/scala-data-accessor-neo4j-web:0.5-SNAPSHOT
     environment:
-      - TOPOSOID_GRAPHDB_HOST=172.30.0.2
-      - PRIVATE_IP_ADDRESS=172.30.0.3
+      - TOPOSOID_GRAPHDB_HOST=neo4j
+      - PRIVATE_IP_ADDRESS=scala-data-accessor-neo4j-web
       - PLAY_HTTP_PORT=9005
-    networks:
-      app_net:
-        ipv4_address: 172.30.0.3
     ports:
       - 9005:9005
     depends_on:
@@ -52,9 +38,6 @@ services:
       - NEO4J_dbms_allow__upgrade=true
       - NEO4J_dbms_default__database=neo4j
       - NEO4J_AUTH=neo4j/p@ssw0rd
-    networks:
-      app_net:
-        ipv4_address: 172.30.0.2
 
 
 
