@@ -262,6 +262,9 @@ curl -X POST -H "Content-Type: application/json" -d '{
     ]
 }' http://localhost:9102/execute
 ```
+## For details on Input Json
+see below.
+* ref. https://github.com/toposoid/toposoid-deduction-admin-web?tab=readme-ov-file#json-details
 
 # Note
 * This microservice uses 9102 as the default port.
