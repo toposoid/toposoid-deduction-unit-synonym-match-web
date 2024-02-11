@@ -33,10 +33,11 @@ jobs:
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt headerCheck"
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt test:headerCheck"
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt compile"
-            docker-compose -f docker-compose-workflow.yml up -d neo4j
-            docker-compose -f docker-compose-workflow.yml up -d scala-data-accessor-neo4j-web
             docker-compose -f docker-compose-workflow.yml up -d toposoid-common-nlp-japanese-web
+            docker-compose -f docker-compose-workflow.yml up -d neo4j
+            docker-compose -f docker-compose-workflow.yml up -d scala-data-accessor-neo4j-web            
             docker-compose -f docker-compose-workflow.yml up -d toposoid-sentence-parser-japanese-web
+            curl --retry 10 --retry-delay 5 --retry-all-errors -X POST http://localhost:7474
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt 'testOnly **.*Japanese1'"
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt 'testOnly **.*Japanese2'"
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt 'testOnly **.*Japanese3'"
@@ -52,8 +53,8 @@ jobs:
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt 'testOnly **.*English3'"
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt 'testOnly **.*English4'"
             docker-compose -f docker-compose-workflow.yml exec -T ${{ env.PJ_REPO }} bash -c "cd ${{ env.PJ_REPO }} && sbt 'testOnly **.*English5'"
+            docker rm --force $(docker ps -a -q) > /dev/null 2>&1 && :
             docker rmi --force ${{ env.PJ_REPO }}:${{ env.PJ_VERSION }}> /dev/null 2>&1 && :
-
       - name: Docker meta
         id: docker_meta
         uses: crazy-max/ghaction-docker-meta@v3
