@@ -20,8 +20,9 @@ This microservice provides the ability to identify and match the synonyms of the
     * neo4j
 
 ## Recommended Environment For Standalone
-* Required: at least 8GB of RAM
-* Required: at least 3.21G of HDD(Total required Docker Image size)
+* Required: at least 16GB of RAM
+* Required: at least 32G of HDD(Total required Docker Image size)
+* Please understand that since we are dealing with large models such as LLM, the Dockerfile size is large and the required machine SPEC is high.
 
 ## Setup For Standalone
 ```bssh
@@ -32,7 +33,7 @@ The first startup takes a long time until docker pull finishes.
 
 ## Usage
 ```bash
-# Please refer to the following for information on registering data to try searching.
+# Please refer to the following for information on registering data to try deduction.
 # ref. https://github.com/toposoid/toposoid-knowledge-register-web
 #for example
 curl -X POST -H "Content-Type: application/json" -d '{
