@@ -5,194 +5,267 @@ This microservice provides the ability to identify and match the synonyms of the
 
 [![Unit Test And Build Image Action](https://github.com/toposoid/toposoid-deduction-unit-synonym-match-web/actions/workflows/action.yml/badge.svg?branch=main)](https://github.com/toposoid/toposoid-deduction-unit-synonym-match-web/actions/workflows/action.yml)
 
-<img width="1033" src="https://user-images.githubusercontent.com/82787843/212532038-cf5d5ddd-69ef-4775-89bf-fdfe99721cc4.png">
+* API Image
+  * Input
+  * <img width="1023" src="https://github.com/toposoid/toposoid-deduction-unit-synonym-match-web/assets/82787843/952bb8c5-b5ab-4635-9500-a749a02af8c0">
+  * Output
+  * <img width="1020" src="https://github.com/toposoid/toposoid-deduction-unit-synonym-match-web/assets/82787843/33d060dd-9564-4fc6-bcf9-f2a67a792503">
 
-
+  
 ## Requirements
 * Docker version 20.10.x, or later
 * docker-compose version 1.22.x
+* The following microservices must be running
+    * scala-data-accessor-neo4j-web
+    * neo4j
 
-### Memory requirements
-* Required: at least 8GB of RAM (The maximum heap memory size of the JVM is set to 6G (Application: 4G, Neo4J: 2G))
-* Required: 30G or higher　of HDD
+## Recommended Environment For Standalone
+* Required: at least 16GB of RAM
+* Required: at least 32G of HDD(Total required Docker Image size)
+* Please understand that since we are dealing with large models such as LLM, the Dockerfile size is large and the required machine SPEC is high.
 
-## Setup
+## Setup For Standalone
 ```bssh
-docker-compose up -d
+docker-compose up
 ```
-It takes more than 20 minutes to pull the Docker image for the first time.
+
+The first startup takes a long time until docker pull finishes.
+
 ## Usage
 ```bash
+# Please refer to the following for information on registering data to try deduction.
+# ref. https://github.com/toposoid/toposoid-knowledge-register-web
+#for example
+curl -X POST -H "Content-Type: application/json" -d '{
+    "premiseList": [],
+    "premiseLogicRelation": [],
+    "claimList": [
+        {
+            "sentence": "太郎はある調査を進めてきた。",
+            "lang": "ja_JP",
+            "extentInfoJson": "{}",
+            "isNegativeSentence": false,
+            "knowledgeForImages":[]
+        }
+    ],
+    "claimLogicRelation": [
+    ]
+}' http://localhost:9002/regist
+
+#Deduction
 curl -X POST -H "Content-Type: application/json" -d '{
     "analyzedSentenceObjects": [
         {
             "nodeMap": {
-                "e7182758-3672-46f0-9eb7-e69659a5c336-3": {
-                    "nodeId": "e7182758-3672-46f0-9eb7-e69659a5c336-3",
-                    "propositionId": "268ee5ef-7341-4c0e-99a8-d562ead3a94c",
-                    "currentId": 3,
-                    "parentId": -1,
-                    "isMainSection": true,
-                    "surface": "進めてきた。",
-                    "normalizedName": "進める",
-                    "dependType": "D",
-                    "caseType": "文末",
-                    "namedEntity": "",
-                    "rangeExpressions": {
-                        "": {}
+                "90778169-e5b6-4ac9-a22b-0e112391e63d-3": {
+                    "nodeId": "90778169-e5b6-4ac9-a22b-0e112391e63d-3",
+                    "propositionId": "27c8c3df-1879-4db7-bb2d-3ba9cf5430f0",
+                    "sentenceId": "90778169-e5b6-4ac9-a22b-0e112391e63d",
+                    "predicateArgumentStructure": {
+                        "currentId": 3,
+                        "parentId": -1,
+                        "isMainSection": true,
+                        "surface": "進めてきた。",
+                        "normalizedName": "進める",
+                        "dependType": "D",
+                        "caseType": "文末",
+                        "isDenialWord": false,
+                        "isConditionalConnection": false,
+                        "normalizedNameYomi": "すすめる",
+                        "surfaceYomi": "すすめてきた。",
+                        "modalityType": "-",
+                        "parallelType": "-",
+                        "nodeType": 1,
+                        "morphemes": [
+                            "動詞,*,母音動詞,タ系連用テ形",
+                            "接尾辞,動詞性接尾辞,カ変動詞,タ形",
+                            "特殊,句点,*,*"
+                        ]
                     },
-                    "categories": {
-                        "": ""
-                    },
-                    "domains": {
-                        "": ""
-                    },
-                    "isDenialWord": false,
-                    "isConditionalConnection": false,
-                    "normalizedNameYomi": "すすめる",
-                    "surfaceYomi": "すすめてきた。",
-                    "modalityType": "-",
-                    "logicType": "-",
-                    "nodeType": 1,
-                    "lang": "ja_JP",
-                    "extentText": "{}"
+                    "localContext": {
+                        "lang": "ja_JP",
+                        "namedEntity": "",
+                        "rangeExpressions": {
+                            "": {}
+                        },
+                        "categories": {
+                            "": ""
+                        },
+                        "domains": {
+                            "": ""
+                        },
+                        "knowledgeFeatureReferences": []
+                    }
                 },
-                "e7182758-3672-46f0-9eb7-e69659a5c336-2": {
-                    "nodeId": "e7182758-3672-46f0-9eb7-e69659a5c336-2",
-                    "propositionId": "268ee5ef-7341-4c0e-99a8-d562ead3a94c",
-                    "currentId": 2,
-                    "parentId": 3,
-                    "isMainSection": false,
-                    "surface": "分析を",
-                    "normalizedName": "分析",
-                    "dependType": "D",
-                    "caseType": "ヲ格",
-                    "namedEntity": "",
-                    "rangeExpressions": {
-                        "": {}
+                "90778169-e5b6-4ac9-a22b-0e112391e63d-2": {
+                    "nodeId": "90778169-e5b6-4ac9-a22b-0e112391e63d-2",
+                    "propositionId": "27c8c3df-1879-4db7-bb2d-3ba9cf5430f0",
+                    "sentenceId": "90778169-e5b6-4ac9-a22b-0e112391e63d",
+                    "predicateArgumentStructure": {
+                        "currentId": 2,
+                        "parentId": 3,
+                        "isMainSection": false,
+                        "surface": "分析を",
+                        "normalizedName": "分析",
+                        "dependType": "D",
+                        "caseType": "ヲ格",
+                        "isDenialWord": false,
+                        "isConditionalConnection": false,
+                        "normalizedNameYomi": "ぶんせき",
+                        "surfaceYomi": "ぶんせきを",
+                        "modalityType": "-",
+                        "parallelType": "-",
+                        "nodeType": 1,
+                        "morphemes": [
+                            "名詞,サ変名詞,*,*",
+                            "助詞,格助詞,*,*"
+                        ]
                     },
-                    "categories": {
-                        "分析": "抽象物"
-                    },
-                    "domains": {
-                        "分析": "科学・技術"
-                    },
-                    "isDenialWord": false,
-                    "isConditionalConnection": false,
-                    "normalizedNameYomi": "ぶんせき",
-                    "surfaceYomi": "ぶんせきを",
-                    "modalityType": "-",
-                    "logicType": "-",
-                    "nodeType": 1,
-                    "lang": "ja_JP",
-                    "extentText": "{}"
+                    "localContext": {
+                        "lang": "ja_JP",
+                        "namedEntity": "",
+                        "rangeExpressions": {
+                            "": {}
+                        },
+                        "categories": {
+                            "分析": "抽象物"
+                        },
+                        "domains": {
+                            "分析": "科学・技術"
+                        },
+                        "knowledgeFeatureReferences": []
+                    }
                 },
-                "e7182758-3672-46f0-9eb7-e69659a5c336-1": {
-                    "nodeId": "e7182758-3672-46f0-9eb7-e69659a5c336-1",
-                    "propositionId": "268ee5ef-7341-4c0e-99a8-d562ead3a94c",
-                    "currentId": 1,
-                    "parentId": 2,
-                    "isMainSection": false,
-                    "surface": "ある",
-                    "normalizedName": "有る",
-                    "dependType": "D",
-                    "caseType": "連格",
-                    "namedEntity": "",
-                    "rangeExpressions": {
-                        "": {}
+                "90778169-e5b6-4ac9-a22b-0e112391e63d-1": {
+                    "nodeId": "90778169-e5b6-4ac9-a22b-0e112391e63d-1",
+                    "propositionId": "27c8c3df-1879-4db7-bb2d-3ba9cf5430f0",
+                    "sentenceId": "90778169-e5b6-4ac9-a22b-0e112391e63d",
+                    "predicateArgumentStructure": {
+                        "currentId": 1,
+                        "parentId": 2,
+                        "isMainSection": false,
+                        "surface": "ある",
+                        "normalizedName": "有る",
+                        "dependType": "D",
+                        "caseType": "連格",
+                        "isDenialWord": false,
+                        "isConditionalConnection": false,
+                        "normalizedNameYomi": "ある",
+                        "surfaceYomi": "ある",
+                        "modalityType": "-",
+                        "parallelType": "-",
+                        "nodeType": 1,
+                        "morphemes": [
+                            "動詞,*,子音動詞ラ行,基本形"
+                        ]
                     },
-                    "categories": {
-                        "": ""
-                    },
-                    "domains": {
-                        "": ""
-                    },
-                    "isDenialWord": false,
-                    "isConditionalConnection": false,
-                    "normalizedNameYomi": "ある",
-                    "surfaceYomi": "ある",
-                    "modalityType": "-",
-                    "logicType": "-",
-                    "nodeType": 1,
-                    "lang": "ja_JP",
-                    "extentText": "{}"
+                    "localContext": {
+                        "lang": "ja_JP",
+                        "namedEntity": "",
+                        "rangeExpressions": {
+                            "": {}
+                        },
+                        "categories": {
+                            "": ""
+                        },
+                        "domains": {
+                            "": ""
+                        },
+                        "knowledgeFeatureReferences": []
+                    }
                 },
-                "e7182758-3672-46f0-9eb7-e69659a5c336-0": {
-                    "nodeId": "e7182758-3672-46f0-9eb7-e69659a5c336-0",
-                    "propositionId": "268ee5ef-7341-4c0e-99a8-d562ead3a94c",
-                    "currentId": 0,
-                    "parentId": 3,
-                    "isMainSection": false,
-                    "surface": "太郎は",
-                    "normalizedName": "太郎",
-                    "dependType": "D",
-                    "caseType": "未格",
-                    "namedEntity": "PERSON",
-                    "rangeExpressions": {
-                        "": {}
+                "90778169-e5b6-4ac9-a22b-0e112391e63d-0": {
+                    "nodeId": "90778169-e5b6-4ac9-a22b-0e112391e63d-0",
+                    "propositionId": "27c8c3df-1879-4db7-bb2d-3ba9cf5430f0",
+                    "sentenceId": "90778169-e5b6-4ac9-a22b-0e112391e63d",
+                    "predicateArgumentStructure": {
+                        "currentId": 0,
+                        "parentId": 3,
+                        "isMainSection": false,
+                        "surface": "太郎は",
+                        "normalizedName": "太郎",
+                        "dependType": "D",
+                        "caseType": "未格",
+                        "isDenialWord": false,
+                        "isConditionalConnection": false,
+                        "normalizedNameYomi": "たろう",
+                        "surfaceYomi": "たろうは",
+                        "modalityType": "-",
+                        "parallelType": "-",
+                        "nodeType": 1,
+                        "morphemes": [
+                            "名詞,人名,*,*",
+                            "助詞,副助詞,*,*"
+                        ]
                     },
-                    "categories": {
-                        "": ""
-                    },
-                    "domains": {
-                        "": ""
-                    },
-                    "isDenialWord": false,
-                    "isConditionalConnection": false,
-                    "normalizedNameYomi": "たろう",
-                    "surfaceYomi": "たろうは",
-                    "modalityType": "-",
-                    "logicType": "-",
-                    "nodeType": 1,
-                    "lang": "ja_JP",
-                    "extentText": "{}"
+                    "localContext": {
+                        "lang": "ja_JP",
+                        "namedEntity": "PERSON",
+                        "rangeExpressions": {
+                            "": {}
+                        },
+                        "categories": {
+                            "": ""
+                        },
+                        "domains": {
+                            "": ""
+                        },
+                        "knowledgeFeatureReferences": []
+                    }
                 }
             },
             "edgeList": [
                 {
-                    "sourceId": "e7182758-3672-46f0-9eb7-e69659a5c336-2",
-                    "destinationId": "e7182758-3672-46f0-9eb7-e69659a5c336-3",
+                    "sourceId": "90778169-e5b6-4ac9-a22b-0e112391e63d-2",
+                    "destinationId": "90778169-e5b6-4ac9-a22b-0e112391e63d-3",
                     "caseStr": "ヲ格",
                     "dependType": "D",
-                    "logicType": "-",
-                    "lang": "ja_JP"
+                    "parallelType": "-",
+                    "hasInclusion": false,
+                    "logicType": "-"
                 },
                 {
-                    "sourceId": "e7182758-3672-46f0-9eb7-e69659a5c336-1",
-                    "destinationId": "e7182758-3672-46f0-9eb7-e69659a5c336-2",
+                    "sourceId": "90778169-e5b6-4ac9-a22b-0e112391e63d-1",
+                    "destinationId": "90778169-e5b6-4ac9-a22b-0e112391e63d-2",
                     "caseStr": "連格",
                     "dependType": "D",
-                    "logicType": "-",
-                    "lang": "ja_JP"
+                    "parallelType": "-",
+                    "hasInclusion": false,
+                    "logicType": "-"
                 },
                 {
-                    "sourceId": "e7182758-3672-46f0-9eb7-e69659a5c336-0",
-                    "destinationId": "e7182758-3672-46f0-9eb7-e69659a5c336-3",
+                    "sourceId": "90778169-e5b6-4ac9-a22b-0e112391e63d-0",
+                    "destinationId": "90778169-e5b6-4ac9-a22b-0e112391e63d-3",
                     "caseStr": "未格",
                     "dependType": "D",
-                    "logicType": "-",
-                    "lang": "ja_JP"
+                    "parallelType": "-",
+                    "hasInclusion": false,
+                    "logicType": "-"
                 }
             ],
-            "sentenceType": 1,
-            "sentenceId": "e7182758-3672-46f0-9eb7-e69659a5c336",
-            "lang": "ja_JP",
-            "deductionResultMap": {
-                "0": {
-                    "status": false,
-                    "matchedPropositionIds": [],
-                    "deductionUnit": ""
-                },
-                "1": {
-                    "status": false,
-                    "matchedPropositionIds": [],
-                    "deductionUnit": ""
+            "knowledgeBaseSemiGlobalNode": {
+                "nodeId": "90778169-e5b6-4ac9-a22b-0e112391e63d",
+                "propositionId": "27c8c3df-1879-4db7-bb2d-3ba9cf5430f0",
+                "sentenceId": "90778169-e5b6-4ac9-a22b-0e112391e63d",
+                "sentence": "太郎はある分析を進めてきた。",
+                "sentenceType": 1,
+                "localContextForFeature": {
+                    "lang": "ja_JP",
+                    "knowledgeFeatureReferences": []
                 }
+            },
+            "deductionResult": {
+                "status": false,
+                "coveredPropositionResults": [],
+                "havePremiseInGivenProposition": false
             }
         }
     ]
 }' http://localhost:9102/execute
 ```
+## For details on Input Json
+see below.
+* ref. https://github.com/toposoid/toposoid-deduction-admin-web?tab=readme-ov-file#json-details
 
 # Note
 * This microservice uses 9102 as the default port.

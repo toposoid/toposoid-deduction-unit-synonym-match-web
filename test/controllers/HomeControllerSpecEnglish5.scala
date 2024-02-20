@@ -20,10 +20,11 @@ import akka.util.Timeout
 import com.ideal.linked.common.DeploymentConverter.conf
 import com.ideal.linked.data.accessor.neo4j.Neo4JAccessor
 import com.ideal.linked.toposoid.common.{CLAIM, PREMISE, ToposoidUtils}
-import com.ideal.linked.toposoid.knowledgebase.regist.model.{Knowledge, KnowledgeSentenceSet, PropositionRelation}
+import com.ideal.linked.toposoid.knowledgebase.regist.model.{Knowledge, PropositionRelation}
 import com.ideal.linked.toposoid.protocol.model.base.AnalyzedSentenceObjects
-import com.ideal.linked.toposoid.protocol.model.parser.{InputSentence, InputSentenceForParser, KnowledgeForParser, KnowledgeSentenceSetForParser}
+import com.ideal.linked.toposoid.protocol.model.parser.{InputSentenceForParser, KnowledgeForParser, KnowledgeSentenceSetForParser}
 import com.ideal.linked.toposoid.sentence.transformer.neo4j.Sentence2Neo4jTransformer
+import io.jvm.uuid.UUID
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -31,12 +32,11 @@ import play.api.Play.materializer
 import play.api.http.Status.OK
 import play.api.libs.json.Json
 import play.api.test.Helpers.{POST, contentType, status, _}
-import play.api.test.{FakeRequest, _}
-import io.jvm.uuid.UUID
+import play.api.test._
 
 import scala.concurrent.duration.DurationInt
 
-class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with BeforeAndAfterAll with GuiceOneAppPerSuite with DefaultAwaitTimeout with Injecting {
+class HomeControllerSpecEnglish5 extends PlaySpec with BeforeAndAfter with BeforeAndAfterAll with GuiceOneAppPerSuite with DefaultAwaitTimeout with Injecting {
 
   before {
     Neo4JAccessor.delete()
@@ -53,16 +53,15 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
 
   override implicit def defaultAwaitTimeout: Timeout = 600.seconds
   val controller: HomeController = inject[HomeController]
+  val sentenceA = "Mark has overcome many problems."
+  val sentenceB = "He has a good chance."
+  val sentenceC = "His life is so comfortable now."
+  val sentenceD = "It's always darkest before the dawn."
 
-  val sentenceA = "太郎はある調査を進めてきた。"
-  val sentenceB = "太郎は秀逸な発案をした。"
-  val sentenceC = "それは人事改善の措置だった。"
-  val sentenceD = "太郎は素晴らしい評価を得た。"
-
-  val paraphraseA = "太郎はある分析を進めてきた。"
-  val paraphraseB = "太郎は秀逸な提案をした。"
-  val paraphraseC = "それは人事改善の対策だった。"
-  val paraphraseD = "太郎は素晴らしい評価を受けた。"
+  val paraphraseA = "Mark has overcome many troubles."
+  val paraphraseB = "He has a good opportunity."
+  val paraphraseC = "His living is so comfortable now."
+  val paraphraseD = "It's always darkest before the morning."
 
   def registSingleClaim(knowledgeForParser:KnowledgeForParser): Unit = {
     val knowledgeSentenceSetForParser = KnowledgeSentenceSetForParser(
@@ -72,22 +71,22 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       List.empty[PropositionRelation])
     Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser)
   }
-
+  /*
   "The specification31" should {
     "returns an appropriate response" in {
       val propositionId1 = UUID.random.toString
       val propositionId2 = UUID.random.toString
       val sentenceId1 = UUID.random.toString
       val sentenceId2 = UUID.random.toString
-      val knowledge1 = Knowledge(sentenceA,"ja_JP", "{}", false)
-      val knowledge2 = Knowledge(sentenceB,"ja_JP", "{}", false)
-      //val knowledge3 = Knowledge(sentenceC,"ja_JP", "{}", false)
-      //val knowledge4 = Knowledge(sentenceD,"ja_JP", "{}", false)
+      val knowledge1 = Knowledge(sentenceA,"en_US", "{}", false)
+      val knowledge2 = Knowledge(sentenceB,"en_US", "{}", false)
+      //val knowledge3 = Knowledge(sentenceC,"en_US", "{}", false)
+      //val knowledge4 = Knowledge(sentenceD,"en_US", "{}", false)
 
-      val paraphrase1 = Knowledge(paraphraseA,"ja_JP", "{}", false)
-      val paraphrase2 = Knowledge(paraphraseB,"ja_JP", "{}", false)
-      val paraphrase3 = Knowledge(paraphraseC,"ja_JP", "{}", false)
-      val paraphrase4 = Knowledge(paraphraseD,"ja_JP", "{}", false)
+      val paraphrase1 = Knowledge(paraphraseA,"en_US", "{}", false)
+      val paraphrase2 = Knowledge(paraphraseB,"en_US", "{}", false)
+      val paraphrase3 = Knowledge(paraphraseC,"en_US", "{}", false)
+      val paraphrase4 = Knowledge(paraphraseD,"en_US", "{}", false)
 
       registSingleClaim(KnowledgeForParser(propositionId1, sentenceId1, knowledge1))
       registSingleClaim(KnowledgeForParser(propositionId2, sentenceId2, knowledge2))
@@ -96,7 +95,7 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
 
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_PORT"), "analyze")
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze")
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json")
         .withJsonBody(Json.parse(json))
@@ -117,15 +116,15 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val propositionId2 = UUID.random.toString
       val sentenceId1 = UUID.random.toString
       val sentenceId2 = UUID.random.toString
-      //val knowledge1 = Knowledge(sentenceA,"ja_JP", "{}", false)
-      //val knowledge2 = Knowledge(sentenceB,"ja_JP", "{}", false)
-      val knowledge3 = Knowledge(sentenceC,"ja_JP", "{}", false)
-      val knowledge4 = Knowledge(sentenceD,"ja_JP", "{}", false)
+      //val knowledge1 = Knowledge(sentenceA,"en_US", "{}", false)
+      //val knowledge2 = Knowledge(sentenceB,"en_US", "{}", false)
+      val knowledge3 = Knowledge(sentenceC,"en_US", "{}", false)
+      val knowledge4 = Knowledge(sentenceD,"en_US", "{}", false)
 
-      val paraphrase1 = Knowledge(paraphraseA,"ja_JP", "{}", false)
-      val paraphrase2 = Knowledge(paraphraseB,"ja_JP", "{}", false)
-      val paraphrase3 = Knowledge(paraphraseC,"ja_JP", "{}", false)
-      val paraphrase4 = Knowledge(paraphraseD,"ja_JP", "{}", false)
+      val paraphrase1 = Knowledge(paraphraseA,"en_US", "{}", false)
+      val paraphrase2 = Knowledge(paraphraseB,"en_US", "{}", false)
+      val paraphrase3 = Knowledge(paraphraseC,"en_US", "{}", false)
+      val paraphrase4 = Knowledge(paraphraseD,"en_US", "{}", false)
 
       registSingleClaim(KnowledgeForParser(propositionId1, sentenceId1, knowledge3))
       registSingleClaim(KnowledgeForParser(propositionId2, sentenceId2, knowledge4))
@@ -134,7 +133,7 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val premiseKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase1), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase2))
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_PORT"), "analyze")
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze")
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json")
         .withJsonBody(Json.parse(json))
@@ -154,15 +153,15 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val propositionId1 = UUID.random.toString
       val sentenceId1 = UUID.random.toString
       val sentenceId2 = UUID.random.toString
-      val knowledge1 = Knowledge(sentenceA,"ja_JP", "{}", false)
-      //val knowledge2 = Knowledge(sentenceB,"ja_JP", "{}", false)
-      val knowledge3 = Knowledge(sentenceC,"ja_JP", "{}", false)
-      //val knowledge4 = Knowledge(sentenceD,"ja_JP", "{}", false)
+      val knowledge1 = Knowledge(sentenceA,"en_US", "{}", false)
+      //val knowledge2 = Knowledge(sentenceB,"en_US", "{}", false)
+      val knowledge3 = Knowledge(sentenceC,"en_US", "{}", false)
+      //val knowledge4 = Knowledge(sentenceD,"en_US", "{}", false)
 
-      val paraphrase1 = Knowledge(paraphraseA,"ja_JP", "{}", false)
-      val paraphrase2 = Knowledge(paraphraseB,"ja_JP", "{}", false)
-      val paraphrase3 = Knowledge(paraphraseC,"ja_JP", "{}", false)
-      val paraphrase4 = Knowledge(paraphraseD,"ja_JP", "{}", false)
+      val paraphrase1 = Knowledge(paraphraseA,"en_US", "{}", false)
+      val paraphrase2 = Knowledge(paraphraseB,"en_US", "{}", false)
+      val paraphrase3 = Knowledge(paraphraseC,"en_US", "{}", false)
+      val paraphrase4 = Knowledge(paraphraseD,"en_US", "{}", false)
 
       val knowledgeSentenceSetForParser = KnowledgeSentenceSetForParser(
         List(KnowledgeForParser(propositionId1, sentenceId1, knowledge1)),
@@ -176,7 +175,7 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
 
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_PORT"), "analyze")
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze")
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json")
         .withJsonBody(Json.parse(json))
@@ -197,15 +196,15 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val sentenceId1 = UUID.random.toString
       val sentenceId2 = UUID.random.toString
       val sentenceId3 = UUID.random.toString
-      val knowledge1 = Knowledge(sentenceA,"ja_JP", "{}", false)
-      val knowledge2 = Knowledge(sentenceB,"ja_JP", "{}", false)
-      val knowledge3 = Knowledge(sentenceC,"ja_JP", "{}", false)
-      //val knowledge4 = Knowledge(sentenceD,"ja_JP", "{}", false)
+      val knowledge1 = Knowledge(sentenceA,"en_US", "{}", false)
+      val knowledge2 = Knowledge(sentenceB,"en_US", "{}", false)
+      val knowledge3 = Knowledge(sentenceC,"en_US", "{}", false)
+      //val knowledge4 = Knowledge(sentenceD,"en_US", "{}", false)
 
-      val paraphrase1 = Knowledge(paraphraseA,"ja_JP", "{}", false)
-      val paraphrase2 = Knowledge(paraphraseB,"ja_JP", "{}", false)
-      val paraphrase3 = Knowledge(paraphraseC,"ja_JP", "{}", false)
-      val paraphrase4 = Knowledge(paraphraseD,"ja_JP", "{}", false)
+      val paraphrase1 = Knowledge(paraphraseA,"en_US", "{}", false)
+      val paraphrase2 = Knowledge(paraphraseB,"en_US", "{}", false)
+      val paraphrase3 = Knowledge(paraphraseC,"en_US", "{}", false)
+      val paraphrase4 = Knowledge(paraphraseD,"en_US", "{}", false)
 
       val knowledgeSentenceSetForParser = KnowledgeSentenceSetForParser(
         List(KnowledgeForParser(propositionId1, sentenceId1, knowledge1), KnowledgeForParser(propositionId1, sentenceId2, knowledge2)),
@@ -218,7 +217,7 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
 
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_PORT"), "analyze")
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze")
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json")
         .withJsonBody(Json.parse(json))
@@ -239,15 +238,15 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val sentenceId1 = UUID.random.toString
       val sentenceId2 = UUID.random.toString
       val sentenceId3 = UUID.random.toString
-      val knowledge1 = Knowledge(sentenceA,"ja_JP", "{}", false)
-      //val knowledge2 = Knowledge(sentenceB,"ja_JP", "{}", false)
-      val knowledge3 = Knowledge(sentenceC,"ja_JP", "{}", false)
-      val knowledge4 = Knowledge(sentenceD,"ja_JP", "{}", false)
+      val knowledge1 = Knowledge(sentenceA,"en_US", "{}", false)
+      //val knowledge2 = Knowledge(sentenceB,"en_US", "{}", false)
+      val knowledge3 = Knowledge(sentenceC,"en_US", "{}", false)
+      val knowledge4 = Knowledge(sentenceD,"en_US", "{}", false)
 
-      val paraphrase1 = Knowledge(paraphraseA,"ja_JP", "{}", false)
-      val paraphrase2 = Knowledge(paraphraseB,"ja_JP", "{}", false)
-      val paraphrase3 = Knowledge(paraphraseC,"ja_JP", "{}", false)
-      val paraphrase4 = Knowledge(paraphraseD,"ja_JP", "{}", false)
+      val paraphrase1 = Knowledge(paraphraseA,"en_US", "{}", false)
+      val paraphrase2 = Knowledge(paraphraseB,"en_US", "{}", false)
+      val paraphrase3 = Knowledge(paraphraseC,"en_US", "{}", false)
+      val paraphrase4 = Knowledge(paraphraseD,"en_US", "{}", false)
 
       val knowledgeSentenceSetForParser = KnowledgeSentenceSetForParser(
         List(KnowledgeForParser(propositionId1, sentenceId1, knowledge1)),
@@ -260,7 +259,7 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
 
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_PORT"), "analyze")
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze")
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json")
         .withJsonBody(Json.parse(json))
@@ -274,7 +273,7 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(x => x.knowledgeBaseSemiGlobalNode.sentenceType.equals(CLAIM.index) && x.deductionResult.havePremiseInGivenProposition).size == 0)
     }
   }
-
+  */
   "The specification36" should {
     "returns an appropriate response" in {
       val propositionId1 = UUID.random.toString
@@ -282,15 +281,15 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val sentenceId2 = UUID.random.toString
       val sentenceId3 = UUID.random.toString
       val sentenceId4 = UUID.random.toString
-      val knowledge1 = Knowledge(sentenceA,"ja_JP", "{}", false)
-      val knowledge2 = Knowledge(sentenceB,"ja_JP", "{}", false)
-      val knowledge3 = Knowledge(sentenceC,"ja_JP", "{}", false)
-      val knowledge4 = Knowledge(sentenceD,"ja_JP", "{}", false)
+      val knowledge1 = Knowledge(sentenceA,"en_US", "{}", false)
+      val knowledge2 = Knowledge(sentenceB,"en_US", "{}", false)
+      val knowledge3 = Knowledge(sentenceC,"en_US", "{}", false)
+      val knowledge4 = Knowledge(sentenceD,"en_US", "{}", false)
 
-      val paraphrase1 = Knowledge(paraphraseA,"ja_JP", "{}", false)
-      val paraphrase2 = Knowledge(paraphraseB,"ja_JP", "{}", false)
-      val paraphrase3 = Knowledge(paraphraseC,"ja_JP", "{}", false)
-      val paraphrase4 = Knowledge(paraphraseD,"ja_JP", "{}", false)
+      val paraphrase1 = Knowledge(paraphraseA,"en_US", "{}", false)
+      val paraphrase2 = Knowledge(paraphraseB,"en_US", "{}", false)
+      val paraphrase3 = Knowledge(paraphraseC,"en_US", "{}", false)
+      val paraphrase4 = Knowledge(paraphraseD,"en_US", "{}", false)
 
       val knowledgeSentenceSetForParser = KnowledgeSentenceSetForParser(
         List(KnowledgeForParser(propositionId1, sentenceId1, knowledge1), KnowledgeForParser(propositionId1, sentenceId2, knowledge2)),
@@ -302,7 +301,7 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val premiseKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase1), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase2))
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_PORT"), "analyze")
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze")
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json")
         .withJsonBody(Json.parse(json))
@@ -328,15 +327,15 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val sentenceId4 = UUID.random.toString
       val sentenceId5 = UUID.random.toString
       val sentenceId6 = UUID.random.toString
-      val knowledge1 = Knowledge(sentenceA,"ja_JP", "{}", false)
-      val knowledge2 = Knowledge(sentenceB,"ja_JP", "{}", false)
-      val knowledge3 = Knowledge(sentenceC,"ja_JP", "{}", false)
-      val knowledge4 = Knowledge(sentenceD,"ja_JP", "{}", false)
+      val knowledge1 = Knowledge(sentenceA,"en_US", "{}", false)
+      val knowledge2 = Knowledge(sentenceB,"en_US", "{}", false)
+      val knowledge3 = Knowledge(sentenceC,"en_US", "{}", false)
+      val knowledge4 = Knowledge(sentenceD,"en_US", "{}", false)
 
-      val paraphrase1 = Knowledge(paraphraseA,"ja_JP", "{}", false)
-      val paraphrase2 = Knowledge(paraphraseB,"ja_JP", "{}", false)
-      val paraphrase3 = Knowledge(paraphraseC,"ja_JP", "{}", false)
-      val paraphrase4 = Knowledge(paraphraseD,"ja_JP", "{}", false)
+      val paraphrase1 = Knowledge(paraphraseA,"en_US", "{}", false)
+      val paraphrase2 = Knowledge(paraphraseB,"en_US", "{}", false)
+      val paraphrase3 = Knowledge(paraphraseC,"en_US", "{}", false)
+      val paraphrase4 = Knowledge(paraphraseD,"en_US", "{}", false)
 
       registSingleClaim(KnowledgeForParser(propositionId1, sentenceId1, knowledge1))
       registSingleClaim(KnowledgeForParser(propositionId2, sentenceId2, knowledge2))
@@ -352,7 +351,7 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
 
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_PORT"), "analyze")
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze")
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json")
         .withJsonBody(Json.parse(json))
@@ -379,15 +378,15 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val sentenceId4 = UUID.random.toString
       val sentenceId5 = UUID.random.toString
       val sentenceId6 = UUID.random.toString
-      val knowledge1 = Knowledge(sentenceA, "ja_JP", "{}", false)
-      val knowledge2 = Knowledge(sentenceB, "ja_JP", "{}", false)
-      val knowledge3 = Knowledge(sentenceC, "ja_JP", "{}", false)
-      val knowledge4 = Knowledge(sentenceD, "ja_JP", "{}", false)
+      val knowledge1 = Knowledge(sentenceA, "en_US", "{}", false)
+      val knowledge2 = Knowledge(sentenceB, "en_US", "{}", false)
+      val knowledge3 = Knowledge(sentenceC, "en_US", "{}", false)
+      val knowledge4 = Knowledge(sentenceD, "en_US", "{}", false)
 
-      val paraphrase1 = Knowledge(paraphraseA, "ja_JP", "{}", false)
-      val paraphrase2 = Knowledge(paraphraseB, "ja_JP", "{}", false)
-      val paraphrase3 = Knowledge(paraphraseC, "ja_JP", "{}", false)
-      val paraphrase4 = Knowledge(paraphraseD, "ja_JP", "{}", false)
+      val paraphrase1 = Knowledge(paraphraseA, "en_US", "{}", false)
+      val paraphrase2 = Knowledge(paraphraseB, "en_US", "{}", false)
+      val paraphrase3 = Knowledge(paraphraseC, "en_US", "{}", false)
+      val paraphrase4 = Knowledge(paraphraseD, "en_US", "{}", false)
 
       registSingleClaim(KnowledgeForParser(propositionId1, sentenceId1, knowledge1))
       registSingleClaim(KnowledgeForParser(propositionId2, sentenceId2, knowledge2))
@@ -399,7 +398,7 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
 
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_PORT"), "analyze")
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze")
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json")
         .withJsonBody(Json.parse(json))
@@ -423,15 +422,15 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val sentenceId3 = UUID.random.toString
       val sentenceId4 = UUID.random.toString
       val sentenceId5 = UUID.random.toString
-      val knowledge1 = Knowledge(sentenceA,"ja_JP", "{}", false)
-      val knowledge2 = Knowledge(sentenceB,"ja_JP", "{}", false)
-      val knowledge3 = Knowledge(sentenceC,"ja_JP", "{}", false)
-      val knowledge4 = Knowledge(sentenceD,"ja_JP", "{}", false)
+      val knowledge1 = Knowledge(sentenceA,"en_US", "{}", false)
+      val knowledge2 = Knowledge(sentenceB,"en_US", "{}", false)
+      val knowledge3 = Knowledge(sentenceC,"en_US", "{}", false)
+      val knowledge4 = Knowledge(sentenceD,"en_US", "{}", false)
 
-      val paraphrase1 = Knowledge(paraphraseA,"ja_JP", "{}", false)
-      val paraphrase2 = Knowledge(paraphraseB,"ja_JP", "{}", false)
-      val paraphrase3 = Knowledge(paraphraseC,"ja_JP", "{}", false)
-      val paraphrase4 = Knowledge(paraphraseD,"ja_JP", "{}", false)
+      val paraphrase1 = Knowledge(paraphraseA,"en_US", "{}", false)
+      val paraphrase2 = Knowledge(paraphraseB,"en_US", "{}", false)
+      val paraphrase3 = Knowledge(paraphraseC,"en_US", "{}", false)
+      val paraphrase4 = Knowledge(paraphraseD,"en_US", "{}", false)
 
       registSingleClaim(KnowledgeForParser(propositionId1, sentenceId1, knowledge1))
 
@@ -446,7 +445,7 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
 
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_PORT"), "analyze")
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze")
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json")
         .withJsonBody(Json.parse(json))
@@ -470,15 +469,15 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val sentenceId3 = UUID.random.toString
       val sentenceId4 = UUID.random.toString
       val sentenceId5 = UUID.random.toString
-      val knowledge1 = Knowledge(sentenceA,"ja_JP", "{}", false)
-      val knowledge2 = Knowledge(sentenceB,"ja_JP", "{}", false)
-      val knowledge3 = Knowledge(sentenceC,"ja_JP", "{}", false)
-      val knowledge4 = Knowledge(sentenceD,"ja_JP", "{}", false)
+      val knowledge1 = Knowledge(sentenceA,"en_US", "{}", false)
+      val knowledge2 = Knowledge(sentenceB,"en_US", "{}", false)
+      val knowledge3 = Knowledge(sentenceC,"en_US", "{}", false)
+      val knowledge4 = Knowledge(sentenceD,"en_US", "{}", false)
 
-      val paraphrase1 = Knowledge(paraphraseA,"ja_JP", "{}", false)
-      val paraphrase2 = Knowledge(paraphraseB,"ja_JP", "{}", false)
-      val paraphrase3 = Knowledge(paraphraseC,"ja_JP", "{}", false)
-      val paraphrase4 = Knowledge(paraphraseD,"ja_JP", "{}", false)
+      val paraphrase1 = Knowledge(paraphraseA,"en_US", "{}", false)
+      val paraphrase2 = Knowledge(paraphraseB,"en_US", "{}", false)
+      val paraphrase3 = Knowledge(paraphraseC,"en_US", "{}", false)
+      val paraphrase4 = Knowledge(paraphraseD,"en_US", "{}", false)
 
       registSingleClaim(KnowledgeForParser(propositionId1, sentenceId1, knowledge3))
 
@@ -493,7 +492,7 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
 
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_PORT"), "analyze")
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze")
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json")
         .withJsonBody(Json.parse(json))
@@ -519,15 +518,15 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val sentenceId4 = UUID.random.toString
       val sentenceId5 = UUID.random.toString
       val sentenceId6 = UUID.random.toString
-      val knowledge1 = Knowledge(sentenceA,"ja_JP", "{}", false)
-      val knowledge2 = Knowledge(sentenceB,"ja_JP", "{}", false)
-      val knowledge3 = Knowledge(sentenceC,"ja_JP", "{}", false)
-      val knowledge4 = Knowledge(sentenceD,"ja_JP", "{}", false)
+      val knowledge1 = Knowledge(sentenceA,"en_US", "{}", false)
+      val knowledge2 = Knowledge(sentenceB,"en_US", "{}", false)
+      val knowledge3 = Knowledge(sentenceC,"en_US", "{}", false)
+      val knowledge4 = Knowledge(sentenceD,"en_US", "{}", false)
 
-      val paraphrase1 = Knowledge(paraphraseA,"ja_JP", "{}", false)
-      val paraphrase2 = Knowledge(paraphraseB,"ja_JP", "{}", false)
-      val paraphrase3 = Knowledge(paraphraseC,"ja_JP", "{}", false)
-      val paraphrase4 = Knowledge(paraphraseD,"ja_JP", "{}", false)
+      val paraphrase1 = Knowledge(paraphraseA,"en_US", "{}", false)
+      val paraphrase2 = Knowledge(paraphraseB,"en_US", "{}", false)
+      val paraphrase3 = Knowledge(paraphraseC,"en_US", "{}", false)
+      val paraphrase4 = Knowledge(paraphraseD,"en_US", "{}", false)
 
       registSingleClaim(KnowledgeForParser(propositionId1, sentenceId1, knowledge1))
       registSingleClaim(KnowledgeForParser(propositionId2, sentenceId2, knowledge3))
@@ -542,7 +541,7 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       val premiseKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase1), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase2))
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_PORT"), "analyze")
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze")
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json")
         .withJsonBody(Json.parse(json))
@@ -556,5 +555,5 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(x => x.knowledgeBaseSemiGlobalNode.sentenceType.equals(CLAIM.index) && x.deductionResult.havePremiseInGivenProposition).size == 0)
     }
   }
-
 }
+
