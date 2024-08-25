@@ -87,4 +87,4 @@ jobs:
           tags: toposoid/${{ env.PJ_REPO }}:${{ env.PJ_VERSION }}-lowspec
           build-args: |
             TARGET_BRANCH=${{ env.PJ_BRANCH }}
-            JAVA_OPT_XMX=3g
+            JAVA_OPT_XMX=2g
