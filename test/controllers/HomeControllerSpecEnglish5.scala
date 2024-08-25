@@ -38,7 +38,8 @@ import scala.concurrent.duration.DurationInt
 
 class HomeControllerSpecEnglish5 extends PlaySpec with BeforeAndAfter with BeforeAndAfterAll with GuiceOneAppPerSuite with DefaultAwaitTimeout with Injecting {
 
-  val transversalState:String = Json.toJson(TransversalState(username="guest")).toString()
+  val transversalState:TransversalState = TransversalState(userId="test-user", username="guest", roleId=0, csrfToken = "")
+  val transversalStateJson:String = Json.toJson(transversalState).toString()
 
   before {
     Neo4JAccessor.delete()
@@ -71,7 +72,7 @@ class HomeControllerSpecEnglish5 extends PlaySpec with BeforeAndAfter with Befor
       List.empty[PropositionRelation],
       List(knowledgeForParser),
       List.empty[PropositionRelation])
-    Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser, TransversalState(username="guest"))
+    Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser, transversalState)
   }
   /*
   "The specification31" should {
@@ -97,7 +98,7 @@ class HomeControllerSpecEnglish5 extends PlaySpec with BeforeAndAfter with Befor
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
 
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", TransversalState(username="guest"))
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", transversalState)
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json", TRANSVERSAL_STATE.str -> transversalState)
         .withJsonBody(Json.parse(json))
@@ -135,7 +136,7 @@ class HomeControllerSpecEnglish5 extends PlaySpec with BeforeAndAfter with Befor
       val premiseKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase1), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase2))
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", TransversalState(username="guest"))
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", transversalState)
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json", TRANSVERSAL_STATE.str -> transversalState)
         .withJsonBody(Json.parse(json))
@@ -171,13 +172,13 @@ class HomeControllerSpecEnglish5 extends PlaySpec with BeforeAndAfter with Befor
         List(KnowledgeForParser(propositionId1, sentenceId2, knowledge3)),
         List.empty[PropositionRelation]
       )
-      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser, TransversalState(username="guest"))
+      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser, transversalState)
       val propositionIdForInference = UUID.random.toString
       val premiseKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase1), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase2))
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
 
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", TransversalState(username="guest"))
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", transversalState)
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json", TRANSVERSAL_STATE.str -> transversalState)
         .withJsonBody(Json.parse(json))
@@ -213,13 +214,13 @@ class HomeControllerSpecEnglish5 extends PlaySpec with BeforeAndAfter with Befor
         List(PropositionRelation("AND", 0,1)),
         List(KnowledgeForParser(propositionId1, sentenceId3, knowledge3)),
         List.empty[PropositionRelation])
-      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser, TransversalState(username="guest"))
+      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser, transversalState)
       val propositionIdForInference = UUID.random.toString
       val premiseKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase1), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase2))
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
 
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", TransversalState(username="guest"))
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", transversalState)
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json", TRANSVERSAL_STATE.str -> transversalState)
         .withJsonBody(Json.parse(json))
@@ -255,13 +256,13 @@ class HomeControllerSpecEnglish5 extends PlaySpec with BeforeAndAfter with Befor
         List.empty[PropositionRelation],
         List(KnowledgeForParser(propositionId1, sentenceId2, knowledge3), KnowledgeForParser(propositionId1, sentenceId3, knowledge4)),
         List(PropositionRelation("AND", 0,1)))
-      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser, TransversalState(username="guest"))
+      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser, transversalState)
       val propositionIdForInference = UUID.random.toString
       val premiseKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase1), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase2))
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
 
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", TransversalState(username="guest"))
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", transversalState)
       val fr = FakeRequest(POST, "/execute")
         .withHeaders("Content-type" -> "application/json", TRANSVERSAL_STATE.str -> transversalState)
         .withJsonBody(Json.parse(json))
@@ -298,14 +299,14 @@ class HomeControllerSpecEnglish5 extends PlaySpec with BeforeAndAfter with Befor
         List(PropositionRelation("AND", 0,1)),
         List(KnowledgeForParser(propositionId1, sentenceId3, knowledge3), KnowledgeForParser(propositionId1, sentenceId4, knowledge4)),
         List(PropositionRelation("AND", 0,1)))
-      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser, TransversalState(username="guest"))
+      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser, transversalState)
       val propositionIdForInference = UUID.random.toString
       val premiseKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase1), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase2))
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", TransversalState(username="guest"))
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", transversalState)
       val fr = FakeRequest(POST, "/execute")
-        .withHeaders("Content-type" -> "application/json", TRANSVERSAL_STATE.str -> transversalState)
+        .withHeaders("Content-type" -> "application/json", TRANSVERSAL_STATE.str -> transversalStateJson)
         .withJsonBody(Json.parse(json))
       val result = call(controller.execute(), fr)
       status(result) mustBe OK
@@ -347,15 +348,15 @@ class HomeControllerSpecEnglish5 extends PlaySpec with BeforeAndAfter with Befor
         List(PropositionRelation("AND", 0,1)),
         List(KnowledgeForParser(propositionId3, sentenceId5, knowledge3), KnowledgeForParser(propositionId3, sentenceId6, knowledge4)),
         List(PropositionRelation("AND", 0,1)))
-      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser, TransversalState(username="guest"))
+      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser, transversalState)
       val propositionIdForInference = UUID.random.toString
       val premiseKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase1), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase2))
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
 
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", TransversalState(username="guest"))
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", transversalState)
       val fr = FakeRequest(POST, "/execute")
-        .withHeaders("Content-type" -> "application/json", TRANSVERSAL_STATE.str -> transversalState)
+        .withHeaders("Content-type" -> "application/json", TRANSVERSAL_STATE.str -> transversalStateJson)
         .withJsonBody(Json.parse(json))
       val result = call(controller.execute(), fr)
       status(result) mustBe OK
@@ -400,9 +401,9 @@ class HomeControllerSpecEnglish5 extends PlaySpec with BeforeAndAfter with Befor
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
 
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", TransversalState(username="guest"))
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", transversalState)
       val fr = FakeRequest(POST, "/execute")
-        .withHeaders("Content-type" -> "application/json", TRANSVERSAL_STATE.str -> transversalState)
+        .withHeaders("Content-type" -> "application/json", TRANSVERSAL_STATE.str -> transversalStateJson)
         .withJsonBody(Json.parse(json))
       val result = call(controller.execute(), fr)
       status(result) mustBe OK
@@ -441,15 +442,15 @@ class HomeControllerSpecEnglish5 extends PlaySpec with BeforeAndAfter with Befor
         List(PropositionRelation("AND", 0,1)),
         List(KnowledgeForParser(propositionId2, sentenceId4, knowledge3), KnowledgeForParser(propositionId2, sentenceId5, knowledge4)),
         List(PropositionRelation("AND", 0,1)))
-      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser, TransversalState(username="guest"))
+      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser, transversalState)
       val propositionIdForInference = UUID.random.toString
       val premiseKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase1), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase2))
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
 
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", TransversalState(username="guest"))
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", transversalState)
       val fr = FakeRequest(POST, "/execute")
-        .withHeaders("Content-type" -> "application/json", TRANSVERSAL_STATE.str -> transversalState)
+        .withHeaders("Content-type" -> "application/json", TRANSVERSAL_STATE.str -> transversalStateJson)
         .withJsonBody(Json.parse(json))
       val result = call(controller.execute(), fr)
       status(result) mustBe OK
@@ -488,15 +489,15 @@ class HomeControllerSpecEnglish5 extends PlaySpec with BeforeAndAfter with Befor
         List(PropositionRelation("AND", 0,1)),
         List(KnowledgeForParser(propositionId2, sentenceId4, knowledge3), KnowledgeForParser(propositionId2, sentenceId5, knowledge4)),
         List(PropositionRelation("AND", 0,1)))
-      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser, TransversalState(username="guest"))
+      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser, transversalState)
       val propositionIdForInference = UUID.random.toString
       val premiseKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase1), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase2))
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
 
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", TransversalState(username="guest"))
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", transversalState)
       val fr = FakeRequest(POST, "/execute")
-        .withHeaders("Content-type" -> "application/json", TRANSVERSAL_STATE.str -> transversalState)
+        .withHeaders("Content-type" -> "application/json", TRANSVERSAL_STATE.str -> transversalStateJson)
         .withJsonBody(Json.parse(json))
       val result = call(controller.execute(), fr)
       status(result) mustBe OK
@@ -538,14 +539,14 @@ class HomeControllerSpecEnglish5 extends PlaySpec with BeforeAndAfter with Befor
         List(PropositionRelation("AND", 0,1)),
         List(KnowledgeForParser(propositionId3, sentenceId5, knowledge3), KnowledgeForParser(propositionId3, sentenceId6, knowledge4)),
         List(PropositionRelation("AND", 0,1)))
-      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser, TransversalState(username="guest"))
+      Sentence2Neo4jTransformer.createGraph(knowledgeSentenceSetForParser, transversalState)
       val propositionIdForInference = UUID.random.toString
       val premiseKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase1), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase2))
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
       val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge)).toString()
-      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", TransversalState(username="guest"))
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", transversalState)
       val fr = FakeRequest(POST, "/execute")
-        .withHeaders("Content-type" -> "application/json", TRANSVERSAL_STATE.str -> transversalState)
+        .withHeaders("Content-type" -> "application/json", TRANSVERSAL_STATE.str -> transversalStateJson)
         .withJsonBody(Json.parse(json))
       val result = call(controller.execute(), fr)
       status(result) mustBe OK
