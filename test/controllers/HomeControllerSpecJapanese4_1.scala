@@ -35,7 +35,7 @@ import io.jvm.uuid.UUID
 
 import scala.concurrent.duration.DurationInt
 
-class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with BeforeAndAfterAll with GuiceOneAppPerSuite with DefaultAwaitTimeout with Injecting {
+class HomeControllerSpecJapanese4_1 extends PlaySpec with BeforeAndAfter with BeforeAndAfterAll with GuiceOneAppPerSuite with DefaultAwaitTimeout with Injecting {
 
   val transversalState:TransversalState = TransversalState(userId="test-user", username="guest", roleId=0, csrfToken = "")
   val transversalStateJson:String = Json.toJson(transversalState).toString()
@@ -276,7 +276,7 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(x => x.knowledgeBaseSemiGlobalNode.sentenceType.equals(CLAIM.index) && x.deductionResult.havePremiseInGivenProposition).size == 0)
     }
   }
-
+  /*
   "The specification36" should {
     "returns an appropriate response" in {
       val propositionId1 = UUID.random.toString
@@ -558,5 +558,5 @@ class HomeControllerSpecJapanese4 extends PlaySpec with BeforeAndAfter with Befo
       assert(analyzedSentenceObjects.analyzedSentenceObjects.filter(x => x.knowledgeBaseSemiGlobalNode.sentenceType.equals(CLAIM.index) && x.deductionResult.havePremiseInGivenProposition).size == 0)
     }
   }
-
+  */
 }
