@@ -19,7 +19,7 @@ services:
     ports:
       - 9102:9102
   scala-data-accessor-neo4j-web:
-    image: toposoid/scala-data-accessor-neo4j-web:0.6-SNAPSHOT-lowspec
+    image: toposoid/scala-data-accessor-neo4j-web:0.6-SNAPSHOT
     environment:
       - TOPOSOID_GRAPHDB_HOST=neo4j
       - PRIVATE_IP_ADDRESS=scala-data-accessor-neo4j-web
@@ -82,7 +82,7 @@ services:
       - NEO4J_apoc_import_file_enabled=true
       - NEO4J_dbms_security_procedures_unrestricted=apoc.*,algo.*
       - NEO4J_dbms_memory_heap_initial__size=512m
-      - NEO4J_dbms_memory_heap_max__size=2G
+      - NEO4J_dbms_memory_heap_max__size=4G
       - NEO4J_dbms_transaction_timeout=10s
       - NEO4J_apoc_uuid_enabled=true
       - NEO4J_dbms_default__listen__address=0.0.0.0
