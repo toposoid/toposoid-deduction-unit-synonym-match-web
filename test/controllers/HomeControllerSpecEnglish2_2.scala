@@ -276,7 +276,7 @@ class HomeControllerSpecEnglish2_2 extends PlaySpec with BeforeAndAfter with Bef
         List(PropositionRelation("AND", 0,1)),
         List(KnowledgeForParser(propositionId2, sentenceId4,knowledge3)),
         List.empty[PropositionRelation])
-      TestUtils.registerData(knowledgeSentenceSetForParser, transversalState)
+      TestUtils.registerData(knowledgeSentenceSetForParser, transversalState, addVectorFlag = false)
 
       val propositionIdForInference = UUID.random.toString
       val premiseKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase1), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase2))
@@ -321,7 +321,7 @@ class HomeControllerSpecEnglish2_2 extends PlaySpec with BeforeAndAfter with Bef
         List(PropositionRelation("AND", 0,1)),
         List(KnowledgeForParser(propositionId3, sentenceId5,knowledge3)),
         List.empty[PropositionRelation])
-      TestUtils.registerData(knowledgeSentenceSetForParser, transversalState)
+      TestUtils.registerData(knowledgeSentenceSetForParser, transversalState, addVectorFlag = false)
       val propositionIdForInference = UUID.random.toString
       val premiseKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase1), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase2))
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3))
