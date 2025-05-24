@@ -165,7 +165,7 @@ class HomeControllerSpecJapanese4_1 extends PlaySpec with BeforeAndAfter with Be
         List(KnowledgeForParser(propositionId1, sentenceId2, knowledge3)),
         List.empty[PropositionRelation]
       )
-      TestUtils.registerData(knowledgeSentenceSetForParser, transversalState)
+      TestUtils.registerData(knowledgeSentenceSetForParser, transversalState, addVectorFlag = false)
       val propositionIdForInference = UUID.random.toString
       val premiseKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase1), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase2))
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
@@ -207,7 +207,7 @@ class HomeControllerSpecJapanese4_1 extends PlaySpec with BeforeAndAfter with Be
         List(PropositionRelation("AND", 0,1)),
         List(KnowledgeForParser(propositionId1, sentenceId3, knowledge3)),
         List.empty[PropositionRelation])
-      TestUtils.registerData(knowledgeSentenceSetForParser, transversalState)
+      TestUtils.registerData(knowledgeSentenceSetForParser, transversalState, addVectorFlag = false)
       val propositionIdForInference = UUID.random.toString
       val premiseKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase1), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase2))
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
@@ -249,7 +249,7 @@ class HomeControllerSpecJapanese4_1 extends PlaySpec with BeforeAndAfter with Be
         List.empty[PropositionRelation],
         List(KnowledgeForParser(propositionId1, sentenceId2, knowledge3), KnowledgeForParser(propositionId1, sentenceId3, knowledge4)),
         List(PropositionRelation("AND", 0,1)))
-      TestUtils.registerData(knowledgeSentenceSetForParser, transversalState)
+      TestUtils.registerData(knowledgeSentenceSetForParser, transversalState, addVectorFlag = false)
       val propositionIdForInference = UUID.random.toString
       val premiseKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase1), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase2))
       val claimKnowledge = List(KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase3), KnowledgeForParser(propositionIdForInference, UUID.random.toString, paraphrase4))
