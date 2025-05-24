@@ -17,23 +17,30 @@
 package controllers
 
 import com.ideal.linked.common.DeploymentConverter.conf
-import com.ideal.linked.toposoid.common.{ToposoidUtils, TransversalState}
+import com.ideal.linked.toposoid.common.{Neo4JUtilsImpl, ToposoidUtils, TransversalState}
+import com.ideal.linked.toposoid.knowledgebase.regist.model.PropositionRelation
 import com.ideal.linked.toposoid.protocol.model.neo4j.Neo4jRecords
-import com.ideal.linked.toposoid.sentence.transformer.neo4j.Neo4JUtilsImpl
+import com.ideal.linked.toposoid.protocol.model.parser.{KnowledgeForParser, KnowledgeSentenceSetForParser}
+import com.ideal.linked.toposoid.test.utils.TestUtils
 import play.api.libs.json.Json
 
-object TestUtils {
+object TestUtilsEx {
+  val neo4JUtils = new Neo4JUtilsImpl()
   def deleteNeo4JAllData(transversalState:TransversalState): Unit = {
     val query = "MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE n,r"
-    val neo4JUtils = new Neo4JUtilsImpl()
     neo4JUtils.executeQuery(query, transversalState)
   }
 
-  def executeQueryAndReturn(query:String, transversalState:TransversalState): Neo4jRecords = {
-    val convertQuery = ToposoidUtils.encodeJsonInJson(query)
-    val hoge = ToposoidUtils.decodeJsonInJson(convertQuery)
-    val json = s"""{ "query":"$convertQuery", "target": "" }"""
-    val jsonResult = ToposoidUtils.callComponent(json, conf.getString("TOPOSOID_GRAPHDB_WEB_HOST"), conf.getString("TOPOSOID_GRAPHDB_WEB_PORT"), "getQueryFormattedResult", transversalState)
-    Json.parse(jsonResult).as[Neo4jRecords]
+  def executeQueryAndReturn(query: String, transversalState: TransversalState): Neo4jRecords = {
+    neo4JUtils.executeQueryAndReturn(query, transversalState)
+  }
+
+  def registerSingleClaim(knowledgeForParser: KnowledgeForParser, transversalState: TransversalState): Unit = {
+    val knowledgeSentenceSetForParser = KnowledgeSentenceSetForParser(
+      List.empty[KnowledgeForParser],
+      List.empty[PropositionRelation],
+      List(knowledgeForParser),
+      List.empty[PropositionRelation])
+    TestUtils.registerData(knowledgeSentenceSetForParser, transversalState, addVectorFlag = false)
   }
 }
