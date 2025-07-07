@@ -36,7 +36,7 @@ The first startup takes a long time until docker pull finishes.
 # Please refer to the following for information on registering data to try deduction.
 # ref. https://github.com/toposoid/toposoid-knowledge-register-web
 #for example
-curl -X POST -H "Content-Type: application/json" -d '{
+curl -X POST -H "Content-Type: application/json" -H 'X_TOPOSOID_TRANSVERSAL_STATE: {"userId":"test-user", "username":"guest", "roleId":0, "csrfToken":""}' -d '{
     "premiseList": [],
     "premiseLogicRelation": [],
     "claimList": [
@@ -45,7 +45,20 @@ curl -X POST -H "Content-Type: application/json" -d '{
             "lang": "ja_JP",
             "extentInfoJson": "{}",
             "isNegativeSentence": false,
-            "knowledgeForImages":[]
+            "knowledgeForImages":[],
+            "knowledgeForTables": [],
+            "knowledgeForDocument": {
+              "id": "",
+              "filename": "",
+              "url": "",
+              "titleOfTopPage": ""
+            },
+            "documentPageReference": {
+              "pageNo": -1,
+              "references": [],
+              "tableOfContents": [],
+              "headlines": []
+            }            
         }
     ],
     "claimLogicRelation": [
@@ -53,7 +66,7 @@ curl -X POST -H "Content-Type: application/json" -d '{
 }' http://localhost:9002/regist
 
 #Deduction
-curl -X POST -H "Content-Type: application/json" -d '{
+curl -X POST -H "Content-Type: application/json" -H 'X_TOPOSOID_TRANSVERSAL_STATE: {"userId":"test-user", "username":"guest", "roleId":0, "csrfToken":""}' -d '{
     "analyzedSentenceObjects": [
         {
             "nodeMap": {
@@ -273,7 +286,22 @@ see below.
 * The memory allocated to Neo4J can be adjusted with NEO4J_dbms_memory_heap_max__size in docker-compose.yml.
 
 ## License
-toposoid/toposoid-deduction-unit-synonym-match-web is Open Source software released under the [Apache 2.0 license](https://www.apache.org/licenses/LICENSE-2.0.html).
+This program is offered under a commercial and under the AGPL license.
+For commercial licensing, contact us at https://toposoid.com/contact.  For AGPL licensing, see below.
+
+AGPL licensing:
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ## Author
 * Makoto Kubodera([Linked Ideal LLC.](https://linked-ideal.com/))
