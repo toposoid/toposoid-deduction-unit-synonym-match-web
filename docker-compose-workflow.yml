@@ -16,7 +16,7 @@ services:
       - TOPOSOID_COMMON_NLP_EN_WEB_HOST=toposoid-common-nlp-english-web
       - TOPOSOID_COMMON_NLP_EN_WEB_PORT=9008
       - TOPOSOID_JVM_XMS=512m
-      - TOPOSOID_JVM_XMX=2g
+      - TOPOSOID_JVM_XMX=4g
       - TOPOSOID_JVM_XSS=512k
       - PLAY_HTTP_PORT=9102
     ports:
