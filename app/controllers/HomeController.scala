@@ -30,6 +30,7 @@ import javax.inject._
 import play.api._
 import play.api.libs.json.Json
 import play.api.mvc._
+import play.api.libs.json.JsValue
 
 import scala.util.{Failure, Success, Try}
 
@@ -44,7 +45,7 @@ final case object NOT_MATCHED extends RelationMatchState(2)
 @Singleton
 class HomeController @Inject()(val controllerComponents: ControllerComponents) extends BaseController with DeductionUnitController with LazyLogging {
 
-  def execute() = Action(parse.json) { request =>
+  def execute():Action[JsValue] = Action(parse.json[JsValue])  { request =>
     val transversalState = Json.parse(request.headers.get(TRANSVERSAL_STATE .str).get).as[TransversalState]
     try {
       val json = request.body
@@ -77,10 +78,10 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
 
     val nodeMap: Map[String, KnowledgeBaseNode] =  aso.nodeMap
     val sentenceType = aso.knowledgeBaseSemiGlobalNode.sentenceType
-    val sourceKey = edge.sourceId
+    val sourceKey = edge.sourceId 
     val targetKey = edge.destinationId
-    val sourceNode = nodeMap.get(sourceKey).getOrElse().asInstanceOf[KnowledgeBaseNode]
-    val destinationNode = nodeMap.get(targetKey).getOrElse().asInstanceOf[KnowledgeBaseNode]
+    val sourceNode = nodeMap.get(sourceKey).get.asInstanceOf[KnowledgeBaseNode]
+    val destinationNode = nodeMap.get(targetKey).get.asInstanceOf[KnowledgeBaseNode]
 
     val initAcc: List[(KnowledgeBaseSideInfo, CoveredPropositionEdge)] = sentenceType match {
       case PREMISE.index => {
