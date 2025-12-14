@@ -17,7 +17,8 @@
 
 package controllers
 
-import akka.util.Timeout
+//import akka.util.Timeout
+import org.apache.pekko.util.Timeout
 import com.ideal.linked.common.DeploymentConverter.conf
 import com.ideal.linked.toposoid.common._
 import com.ideal.linked.toposoid.knowledgebase.regist.model.{Knowledge, PropositionRelation}
@@ -25,7 +26,7 @@ import com.ideal.linked.toposoid.protocol.model.base.AnalyzedSentenceObjects
 import com.ideal.linked.toposoid.protocol.model.parser.{InputSentenceForParser, KnowledgeForParser, KnowledgeSentenceSetForParser}
 import com.ideal.linked.toposoid.sentence.transformer.neo4j.Sentence2Neo4jTransformer
 import com.ideal.linked.toposoid.test.utils.TestUtils
-import io.jvm.uuid.UUID
+//import io.jvm.uuid.UUID
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
