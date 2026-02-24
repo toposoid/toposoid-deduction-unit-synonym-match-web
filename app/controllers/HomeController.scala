@@ -20,7 +20,7 @@ package controllers
 
 import com.ideal.linked.toposoid.protocol.model.base.{AnalyzedSentenceObject, AnalyzedSentenceObjects, CoveredPropositionEdge, CoveredPropositionNode, KnowledgeBaseSideInfo, MatchedFeatureInfo}
 import com.ideal.linked.toposoid.protocol.model.neo4j.Neo4jRecords
-import com.ideal.linked.toposoid.common.{CLAIM, LOCAL, PREDICATE_ARGUMENT, PREMISE, TRANSVERSAL_STATE, ToposoidUtils, TransversalState}
+import com.ideal.linked.toposoid.common.{SentenceType, ScopeType, FeatureType, TRANSVERSAL_STATE, ToposoidUtils, TransversalState}
 import com.ideal.linked.toposoid.deduction.common.DeductionUnitController
 import com.typesafe.scalalogging.LazyLogging
 import com.ideal.linked.toposoid.deduction.common.FacadeForAccessNeo4J.getCypherQueryResult
@@ -84,8 +84,8 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
     val destinationNode = nodeMap.get(targetKey).get.asInstanceOf[KnowledgeBaseNode]
 
     val initAcc: List[(KnowledgeBaseSideInfo, CoveredPropositionEdge)] = sentenceType match {
-      case PREMISE.index => {
-        accParent ::: searchMatchRelation(sourceNode, destinationNode, edge.caseStr, CLAIM.index, transversalState)
+      case SentenceType.PREMISE.index => {
+        accParent ::: searchMatchRelation(sourceNode, destinationNode, edge.caseStr, SentenceType.CLAIM.index, transversalState)
       }
       case _ => accParent
     }
@@ -104,7 +104,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
    */
   private def searchMatchRelation(sourceNode: KnowledgeBaseNode, targetNode: KnowledgeBaseNode, caseName: String, sentenceType: Int, transversalState:TransversalState): List[(KnowledgeBaseSideInfo, CoveredPropositionEdge)] = {
 
-    val nodeType: String = ToposoidUtils.getNodeType(sentenceType, LOCAL.index, PREDICATE_ARGUMENT.index)
+    val nodeType: String = ToposoidUtils.getNodeType(sentenceType, ScopeType.LOCAL.index, FeatureType.PREDICATE_ARGUMENT.index)
     val sourceSurface = sourceNode.predicateArgumentStructure.surface
     val targetSurface = targetNode.predicateArgumentStructure.surface
     //エッジの両側ノードで厳格に一致するものがあるかどうか
@@ -177,7 +177,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
    */
   private def checkSynonymNode(sourceNode: KnowledgeBaseNode, targetNode: KnowledgeBaseNode, caseName: String, relationMatchState: RelationMatchState, sentenceType: Int, transversalState:TransversalState): List[(KnowledgeBaseSideInfo, CoveredPropositionEdge)] = {
 
-    val nodeType: String = ToposoidUtils.getNodeType(sentenceType, LOCAL.index, PREDICATE_ARGUMENT.index)
+    val nodeType: String = ToposoidUtils.getNodeType(sentenceType, ScopeType.LOCAL.index, FeatureType.PREDICATE_ARGUMENT.index)
     val query = relationMatchState match {
       case MATCHED_SOURCE_NODE_ONLY => {
         "MATCH (n1:%s)-[e]-(n2:%s)<-[se:SynonymEdge]-(sn2:SynonymNode) WHERE n1.normalizedName='%s' AND n1.isDenialWord='%s' AND e.caseName='%s' AND n2.isDenialWord='%s' AND sn2.nodeName='%s' RETURN n1, e, sn2".format(nodeType, nodeType, sourceNode.predicateArgumentStructure.normalizedName, sourceNode.predicateArgumentStructure.isDenialWord, caseName, targetNode.predicateArgumentStructure.isDenialWord, targetNode.predicateArgumentStructure.normalizedName)
