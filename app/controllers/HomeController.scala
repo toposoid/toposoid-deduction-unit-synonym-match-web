@@ -40,6 +40,9 @@ import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import com.ideal.linked.toposoid.common.RelationMatchState
+import com.ideal.linked.toposoid.protocol.model.base.MatchedKnowledgeNode
+import com.ideal.linked.toposoid.knowledgebase.model.KnowledgeFeatureReference
+import com.ideal.linked.toposoid.knowledgebase.model.KnowledgeBaseSynonymNode
 
 /*
 sealed abstract class RelationMatchState(val index: Int)
@@ -102,40 +105,96 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
       val targetLink = Set(x.sourceId, x.destinationId)
       pairSetList.contains(targetLink)
     })
-
   }
 
-
-  /**
-   * This function is a sub-function of analyze
-   *
-   * @param edge
-   * @param nodeMap
-   * @param sentenceType
-   * @param accParent
-   * @return
-   */
-  /*
-  def analyzeGraphKnowledge(edges: List[KnowledgeBaseEdge], aso:AnalyzedSentenceObject, transversalState:TransversalState):List[CoveredPropositionEdge] = {
-    /*
-    val nodeMap: Map[String, KnowledgeBaseNode] =  aso.nodeMap
-    val sentenceType = aso.knowledgeBaseSemiGlobalNode.sentenceType
-    val sourceKey = edge.sourceId 
-    val targetKey = edge.destinationId
-    val sourceNode = nodeMap.get(sourceKey).get.asInstanceOf[KnowledgeBaseNode]
-    val destinationNode = nodeMap.get(targetKey).get.asInstanceOf[KnowledgeBaseNode]
-
-    val initAcc: List[(KnowledgeBaseSideInfo, CoveredPropositionEdge)] = sentenceType match {
-      case SentenceType.PREMISE.index => {
-        accParent ::: searchMatchRelation(sourceNode, destinationNode, edge.caseStr, SentenceType.CLAIM.index, transversalState)
+  private def getMatchedKnowledgeNodes(
+    edge: KnowledgeBaseEdge, 
+    serchedKnowledgeNodes:List[KnowledgeBaseNode | KnowledgeBaseSynonymNode | KnowledgeFeatureReference], 
+    proopsitionNode: KnowledgeBaseNode,
+    featureInfoList:List[MatchedFeatureInfo]):List[MatchedKnowledgeNode]= {
+    
+    serchedKnowledgeNodes.map(x => {
+      x match {
+        case a:KnowledgeBaseNode => {
+          MatchedKnowledgeNode(
+              propositionId = a.propositionId,
+              sentenceId = a.sentenceId,
+              nodeId = a.nodeId,
+              caseNameOnEdge = edge.caseStr,
+              isDenialWord = a.predicateArgumentStructure.isDenialWord,
+              nodeType = a.predicateArgumentStructure.nodeType,
+              featureInfoList = List.empty[MatchedFeatureInfo]
+            )
+        }
+        case b:KnowledgeBaseSynonymNode => {
+          MatchedKnowledgeNode(
+              propositionId = b.propositionId,
+              sentenceId = b.sentenceId,
+              nodeId = b.nodeId,
+              caseNameOnEdge = edge.caseStr,
+              isDenialWord = proopsitionNode.predicateArgumentStructure.isDenialWord,
+              nodeType = proopsitionNode.predicateArgumentStructure.nodeType, 
+              featureInfoList = List.empty[MatchedFeatureInfo]
+            )
+        }
+        case c:KnowledgeFeatureReference => {
+          MatchedKnowledgeNode(
+              propositionId = c.propositionId,
+              sentenceId = c.sentenceId,
+              nodeId = c.featureId,
+              caseNameOnEdge = edge.caseStr,
+              isDenialWord = proopsitionNode.predicateArgumentStructure.isDenialWord,
+              nodeType = proopsitionNode.predicateArgumentStructure.nodeType, 
+              featureInfoList = List.empty[MatchedFeatureInfo]
+            )
+        }
       }
-      case _ => accParent
-    }
-    initAcc ::: searchMatchRelation(sourceNode, destinationNode, edge.caseStr, sentenceType, transversalState)
-    */
-    List.empty[CoveredPropositionEdge]
+    })
+    
   }
-  */
+  
+  private def getCoveredPropositionEdge(edge: KnowledgeBaseEdge, sourceAlias:String, destinationAlias:String, nodeMap:Map[String, KnowledgeBaseNode], neo4jRecords: Neo4jRecords, relationMatchState:RelationMatchState):CoveredPropositionEdge = {
+    //一旦どちらかのノードが埋まっていれば推論を進めるものとする。
+    
+    val (isConfirmedSource, isConfirmedDestination)= relationMatchState match {
+        case RelationMatchState.MATCHED_BOTH => (true, true)
+        case RelationMatchState.MATCHED_SOURCE_NODE_ONLY => (true, false)
+        case RelationMatchState.MATCHED_TARGET_NODE_ONLY => (false, true)
+        case RelationMatchState.NOT_MATCHED_BOTH => (false, false)
+    } 
+
+    val sourceNodeSurface = nodeMap.get(edge.sourceId).get.asInstanceOf[KnowledgeBaseNode].predicateArgumentStructure.surface
+    val destinationNodeSurface = nodeMap.get(edge.destinationId).get.asInstanceOf[KnowledgeBaseNode].predicateArgumentStructure.surface
+
+    val sourceKnowledgeNodes = neo4jRecords.records.map(x => x.filter(y => y.key == sourceAlias).map(
+      z => List(z.value.localNode, z.value.synonymNode, z.value.featureNode).flatten.head)).flatten
+
+    val destinationKnowledgeNodes = neo4jRecords.records.map(x => x.filter(y => y.key == destinationAlias).map(
+      z => List(z.value.localNode, z.value.synonymNode, z.value.featureNode).flatten.head)).flatten
+
+    val sourceMatchedKnowledgeNodes:List[MatchedKnowledgeNode] = sourceAlias match {
+      case "" => List.empty[MatchedKnowledgeNode]
+      case _ => getMatchedKnowledgeNodes(edge, sourceKnowledgeNodes, nodeMap.get(edge.sourceId).get, List.empty[MatchedFeatureInfo])
+    }
+
+    val destinationMatchedKnowledgeNodes:List[MatchedKnowledgeNode] = destinationAlias match {
+      case "" =>  List.empty[MatchedKnowledgeNode]
+      case _ => getMatchedKnowledgeNodes(edge, destinationKnowledgeNodes, nodeMap.get(edge.destinationId).get, List.empty[MatchedFeatureInfo])
+    }
+
+    //val knowledgeBaseSideInfoList:List[KnowledgeBaseSideInfo] = List.empty[KnowledgeBaseSideInfo]
+    /*
+    val knowledgeBaseSideInfoList:List[KnowledgeBaseSideInfo] = (sourceMatchedKnowledgeNodes:::destinationMatchedKnowledgeNodes).map(x => {   
+      //TODO:すでにある deductionUnitsを追加しないといけない。                 
+      KnowledgeBaseSideInfo(propositionId=x.propositionId, sentenceId=x.sentenceId , featureInfoList = List.empty[MatchedFeatureInfo], deductionUnits = List("exact-match"))
+    }).distinct
+    */
+    //isConfirmed:Boolean, deductionUnit:String
+    val sourceNode = CoveredPropositionNode(terminalId = edge.sourceId, terminalSurface = sourceNodeSurface, terminalUrl = "", matchedKnowledgeNodes=sourceMatchedKnowledgeNodes, isConfirmedSource, "exact-match")
+    val destinationNode = CoveredPropositionNode(terminalId = edge.destinationId, terminalSurface = destinationNodeSurface, terminalUrl = "", matchedKnowledgeNodes=destinationMatchedKnowledgeNodes, isConfirmedDestination, "exact-match")
+    //val knowledgeBaseSideInfo = KnowledgeBaseSideInfo(propositionId = , sentenceId = , featureInfoList = List.empty[MatchedFeatureInfo])
+    CoveredPropositionEdge(sourceNode = sourceNode, destinationNode = destinationNode)
+  }
 
   private def analyzeEdge(edge:KnowledgeBaseEdge, aso:AnalyzedSentenceObject, transversalState:TransversalState):Option[CoveredPropositionEdge] = {
 
@@ -147,12 +206,6 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
     val sourceNode = nodeMap.get(sourceKey).get.asInstanceOf[KnowledgeBaseNode]
     val destinationNode = nodeMap.get(targetKey).get.asInstanceOf[KnowledgeBaseNode]
     
-    //deductionResult.coveredPropositionEdges
-    /*
-    Source側がすでに被覆されているエッジ
-    Destination側がすでに被覆されているエッジ
-    両側が被覆可能なエッジ
-    */
 
     //sentenceIdも絞り込めるがどうするか？  
     val coveredPropositionEdge = aso.deductionResult.coveredPropositionEdges.filter(x => {
@@ -171,7 +224,8 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
       if (!jsonStr.equals("""{"records":[]}""")) {
         //ヒットするものがある場合
         val neo4jRecords: Neo4jRecords = Json.parse(jsonStr).as[Neo4jRecords]
-        Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
+        //Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
+        Option(getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
       }else{
         None
       }
@@ -185,7 +239,8 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
       if (!jsonStr.equals("""{"records":[]}""")) {
         //ヒットするものがある場合
         val neo4jRecords: Neo4jRecords = Json.parse(jsonStr).as[Neo4jRecords]
-        Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
+        //Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
+        Option(getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
       }else{
         None
       }
@@ -199,22 +254,20 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
       if (!jsonStr.equals("""{"records":[]}""")) {
         //ヒットするものがある場合
         val neo4jRecords: Neo4jRecords = Json.parse(jsonStr).as[Neo4jRecords]
-        Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
+        //Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
+        Option(getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
       }else{
         None
       }
     }else{
       None
     }
-
     None
   }
 
 
   private def analyzeGraphKnowledge(edges: List[KnowledgeBaseEdge], aso:AnalyzedSentenceObject, transversalState:TransversalState):List[CoveredPropositionEdge] = {
     
-    
-
     val futures: List[Future[Option[CoveredPropositionEdge]]] = edges.foldLeft(List.empty[Future[Option[CoveredPropositionEdge]]]){
       (acc, edge) => {
         acc :+ Future(analyzeEdge(edge:KnowledgeBaseEdge, aso:AnalyzedSentenceObject, transversalState))
