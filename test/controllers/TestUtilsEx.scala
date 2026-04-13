@@ -52,16 +52,17 @@ object TestUtilsEx {
 
   def analyzeByBaseDeductionUnit(asosJson:String, transversalState: TransversalState):String = {
     val json = ToposoidUtils.callComponent(asosJson, conf.getString("TOPOSOID_DEDUCTION_UNIT1_HOST"), conf.getString("TOPOSOID_DEDUCTION_UNIT1_PORT"), "execute", transversalState)
-    val verifyingEdges = Json.parse(json).as[VerifyingEdges]
+    val verifyingEdges = Json.parse(json).as[List[VerifyingEdges]]
     val analyzedSentenceObjects = Json.parse(asosJson).as[AnalyzedSentenceObjects]
     val asos = analyzedSentenceObjects.analyzedSentenceObjects
-
+    
     val updatedAsos = asos.foldLeft(List.empty[AnalyzedSentenceObject]){
       (acc, x) => {
+        val coveredPropositionEdges = verifyingEdges.filter(y => y.sentenceId.equals(x.knowledgeBaseSemiGlobalNode.sentenceId)).head.coveredPropositionEdges
         val updatedDeductionReult = DeductionResult(
           status = x.deductionResult.status, 
           authenticityType = x.deductionResult.authenticityType, 
-          coveredPropositionEdges = x.deductionResult.coveredPropositionEdges, 
+          coveredPropositionEdges = coveredPropositionEdges, 
           evidenceKnowledgeList = x.deductionResult.evidenceKnowledgeList, 
           havePremiseInGivenProposition = x.deductionResult.havePremiseInGivenProposition, 
           deductionPhaseType = x.deductionResult.deductionPhaseType
