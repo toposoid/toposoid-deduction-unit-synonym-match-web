@@ -24,6 +24,7 @@ import com.ideal.linked.toposoid.protocol.model.neo4j.Neo4jRecords
 import com.ideal.linked.toposoid.protocol.model.parser.{KnowledgeForParser, KnowledgeSentenceSetForParser}
 import com.ideal.linked.toposoid.test.utils.TestUtils
 import play.api.libs.json.Json
+import com.ideal.linked.common.DeploymentConverter.conf
 
 object TestUtilsEx {
   val neo4JUtils = new Neo4JUtilsImpl()
@@ -43,5 +44,9 @@ object TestUtilsEx {
       List(knowledgeForParser),
       List.empty[PropositionRelation])
     TestUtils.registerData(knowledgeSentenceSetForParser, transversalState, addVectorFlag = false)
+  }
+
+  def analyzeByBaseDeductionUnit(asosJson:String, transversalState: TransversalState):String = {
+    ToposoidUtils.callComponent(asosJson, conf.getString("TOPOSOID_DEDUCTION_UNIT1_HOST"), conf.getString("TOPOSOID_DEDUCTION_UNIT1_PORT"), "execute", transversalState)
   }
 }

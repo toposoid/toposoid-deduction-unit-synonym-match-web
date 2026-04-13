@@ -43,7 +43,7 @@ import com.ideal.linked.toposoid.common.RelationMatchState
 import com.ideal.linked.toposoid.protocol.model.base.MatchedKnowledgeNode
 import com.ideal.linked.toposoid.knowledgebase.model.KnowledgeFeatureReference
 import com.ideal.linked.toposoid.knowledgebase.model.KnowledgeBaseSynonymNode
-
+import com.ideal.linked.common.DeploymentConverter.conf
 /*
 sealed abstract class RelationMatchState(val index: Int)
 final case object MATCHED_SOURCE_NODE_ONLY extends RelationMatchState(0)
