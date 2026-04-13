@@ -73,4 +73,34 @@ object TestUtilsEx {
     Json.toJson(AnalyzedSentenceObjects(updatedAsos, analyzedSentenceObjects.deductionConfiguration)).toString
     
   }
+
+  def checkMatchedBothSide(json:String, sentenceId:String, verifyingEdgesList:List[VerifyingEdges], correctSize:Int ):Unit = {
+
+      val evalA:VerifyingEdges = verifyingEdgesList.filter(x => x.sentenceId.equals(sentenceId)).head
+      val coveredEdges = evalA.coveredPropositionEdges.filter(x => x.destinationNode.isConfirmed && x.sourceNode.isConfirmed)
+      assert(coveredEdges.size == correctSize)
+
+      val analyzedSentenceObjects: AnalyzedSentenceObjects = Json.parse(json).as[AnalyzedSentenceObjects]
+      //両側被覆エッジに含まれるノードのチェック
+      val targetAso = analyzedSentenceObjects.analyzedSentenceObjects.filter(x => x.knowledgeBaseSemiGlobalNode.sentenceId.equals(sentenceId)).head      
+      coveredEdges.foreach(x => {
+        assert(targetAso.nodeMap.get(x.sourceNode.terminalId).get.predicateArgumentStructure.surface.equals(x.sourceNode.terminalSurface))
+        assert(targetAso.nodeMap.get(x.destinationNode.terminalId).get.predicateArgumentStructure.surface.equals(x.destinationNode.terminalSurface))        
+      })
+
+      val sentenceIds = coveredEdges.foldLeft(List.empty[String]){
+        (acc, x) => {        
+          val sourceKnowledgeSentenceIds = x.sourceNode.matchedKnowledgeNodes.foldLeft(Set.empty[String]){(acc2, y) => {
+            acc2 + y.sentenceId
+          }}        
+          val destinationKnowledgeSentenceIds = x.destinationNode.matchedKnowledgeNodes.foldLeft(Set.empty[String]){(acc2, y) => {
+            acc2 + y.sentenceId
+          }}
+          val targetSentenceIds = sourceKnowledgeSentenceIds & destinationKnowledgeSentenceIds 
+          assert(targetSentenceIds.size > 0)
+          acc ::: targetSentenceIds.toList
+        }
+      }            
+      assert(sentenceIds.groupBy(identity).filter(x => x._2.size >= correctSize).size > 0)
+  }
 }
