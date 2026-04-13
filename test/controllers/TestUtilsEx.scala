@@ -25,6 +25,10 @@ import com.ideal.linked.toposoid.protocol.model.parser.{KnowledgeForParser, Know
 import com.ideal.linked.toposoid.test.utils.TestUtils
 import play.api.libs.json.Json
 import com.ideal.linked.common.DeploymentConverter.conf
+import com.ideal.linked.toposoid.protocol.model.base.VerifyingEdges
+import com.ideal.linked.toposoid.protocol.model.base.AnalyzedSentenceObjects
+import com.ideal.linked.toposoid.protocol.model.base.AnalyzedSentenceObject
+import com.ideal.linked.toposoid.protocol.model.base.DeductionResult
 
 object TestUtilsEx {
   val neo4JUtils = new Neo4JUtilsImpl()
@@ -47,6 +51,25 @@ object TestUtilsEx {
   }
 
   def analyzeByBaseDeductionUnit(asosJson:String, transversalState: TransversalState):String = {
-    ToposoidUtils.callComponent(asosJson, conf.getString("TOPOSOID_DEDUCTION_UNIT1_HOST"), conf.getString("TOPOSOID_DEDUCTION_UNIT1_PORT"), "execute", transversalState)
+    val json = ToposoidUtils.callComponent(asosJson, conf.getString("TOPOSOID_DEDUCTION_UNIT1_HOST"), conf.getString("TOPOSOID_DEDUCTION_UNIT1_PORT"), "execute", transversalState)
+    val verifyingEdges = Json.parse(json).as[VerifyingEdges]
+    val analyzedSentenceObjects = Json.parse(asosJson).as[AnalyzedSentenceObjects]
+    val asos = analyzedSentenceObjects.analyzedSentenceObjects
+
+    val updatedAsos = asos.foldLeft(List.empty[AnalyzedSentenceObject]){
+      (acc, x) => {
+        val updatedDeductionReult = DeductionResult(
+          status = x.deductionResult.status, 
+          authenticityType = x.deductionResult.authenticityType, 
+          coveredPropositionEdges = x.deductionResult.coveredPropositionEdges, 
+          evidenceKnowledgeList = x.deductionResult.evidenceKnowledgeList, 
+          havePremiseInGivenProposition = x.deductionResult.havePremiseInGivenProposition, 
+          deductionPhaseType = x.deductionResult.deductionPhaseType
+        )        
+        acc :+ AnalyzedSentenceObject(x.nodeMap, x.edgeList, x.knowledgeBaseSemiGlobalNode, updatedDeductionReult)
+      }
+    }
+    Json.toJson(AnalyzedSentenceObjects(updatedAsos, analyzedSentenceObjects.deductionConfiguration)).toString
+    
   }
 }
