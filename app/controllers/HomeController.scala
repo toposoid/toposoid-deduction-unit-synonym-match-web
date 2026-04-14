@@ -209,60 +209,65 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
     
 
     //sentenceIdも絞り込めるがどうするか？  
-    val coveredPropositionEdge = aso.deductionResult.coveredPropositionEdges.filter(x => {
+    val coveredPropositionEdges = aso.deductionResult.coveredPropositionEdges.filter(x => {
       x.sourceNode.terminalId.equals(sourceKey) && x.destinationNode.terminalId.equals(targetKey)
-    }).head
+    })
 
-    val nodeType: String = ToposoidUtils.getNodeType(SentenceType.CLAIM.index, ScopeType.LOCAL.index, FeatureType.PREDICATE_ARGUMENT.index)
-  
-    if(coveredPropositionEdge.sourceNode.isConfirmed && !coveredPropositionEdge.destinationNode.isConfirmed){
-      val sourceAlias = "n1"
-      val destinationAlias = "n2ext"
-      val querySourceOnly = "MATCH (n1:%s)-[e]->(n2:%s)-[e2ext:SynonymEdge]-(n2ext:SynonymNode) WHERE n1.surface=\"%s\" AND e.caseName='%s' AND n2.isDenialWord='%s' AND n2ext.nodeName='%s' RETURN n1, e, n2ext".format(nodeType, nodeType, sourceNode.predicateArgumentStructure.surface, edge.caseStr, destinationNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.normalizedName)
-      logger.debug(querySourceOnly)
-      val jsonStr: String = neo4JUtils.getCypherQueryResult(querySourceOnly, "", transversalState)
-      //If there is even one that does not match, it is useless to search further
-      if (!jsonStr.equals("""{"records":[]}""")) {
-        //ヒットするものがある場合
-        val neo4jRecords: Neo4jRecords = Json.parse(jsonStr).as[Neo4jRecords]
-        //Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
-        Option(getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
-      }else{
-        None
-      }
-    }else if(!coveredPropositionEdge.sourceNode.isConfirmed && coveredPropositionEdge.destinationNode.isConfirmed){
-      val sourceAlias = "n1ext"
-      val destinationAlias = "n2"
-      val queryTargetOnly = "MATCH (n1ext:SynonymNode)-[e1ext:SynonymEdge]-(n1:%s)-[e]->(n2:%s) WHERE n2.surface=\"%s\" AND e.caseName='%s' AND n1.isDenialWord='%s' AND n1ext.nodeName='%s' RETURN n1ext, e, n2".format(nodeType, nodeType, destinationNode.predicateArgumentStructure.surface, edge.caseStr, sourceNode.predicateArgumentStructure.isDenialWord, sourceNode.predicateArgumentStructure.normalizedName)
-      logger.debug(queryTargetOnly)
-      val jsonStr: String = neo4JUtils.getCypherQueryResult(queryTargetOnly, "", transversalState)
-      //If there is even one that does not match, it is useless to search further
-      if (!jsonStr.equals("""{"records":[]}""")) {
-        //ヒットするものがある場合
-        val neo4jRecords: Neo4jRecords = Json.parse(jsonStr).as[Neo4jRecords]
-        //Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
-        Option(getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
-      }else{
-        None
-      }
-    }else if(!coveredPropositionEdge.sourceNode.isConfirmed && !coveredPropositionEdge.destinationNode.isConfirmed){
-      val sourceAlias = "n1ext"
-      val destinationAlias = "n2ext"
-      val queryBothReplacement = "MATCH (n1ext:SynonymNode)-[e1ext:SynonymEdge]-(n1:%s)-[e]->(n2:%s)-[e2ext:SynonymEdge]-(n2ext:SynonymNode) WHERE e.caseName='%s' AND Not e1ext:LocalEdge AND Not e2ext:LocalEdge AND n1.isDenialWord='%s' AND n2.isDenialWord='%s' RETURN n1ext, e, n2ext".format(nodeType, nodeType, edge.caseStr, sourceNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.isDenialWord, sourceNode.predicateArgumentStructure.normalizedName, destinationNode.predicateArgumentStructure.normalizedName)
-            logger.debug(queryBothReplacement)
-      val jsonStr: String = neo4JUtils.getCypherQueryResult(queryBothReplacement, "", transversalState)
-      //If there is even one that does not match, it is useless to search further
-      if (!jsonStr.equals("""{"records":[]}""")) {
-        //ヒットするものがある場合
-        val neo4jRecords: Neo4jRecords = Json.parse(jsonStr).as[Neo4jRecords]
-        //Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
-        Option(getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
-      }else{
-        None
-      }
-    }else{
+    if(coveredPropositionEdges.size == 0) {
       None
-    }    
+    }else{
+      val coveredPropositionEdge = coveredPropositionEdges.head
+      val nodeType: String = ToposoidUtils.getNodeType(SentenceType.CLAIM.index, ScopeType.LOCAL.index, FeatureType.PREDICATE_ARGUMENT.index)
+    
+      if(coveredPropositionEdge.sourceNode.isConfirmed && !coveredPropositionEdge.destinationNode.isConfirmed){
+        val sourceAlias = "n1"
+        val destinationAlias = "n2ext"
+        val querySourceOnly = "MATCH (n1:%s)-[e]->(n2:%s)-[e2ext:SynonymEdge]-(n2ext:SynonymNode) WHERE n1.surface=\"%s\" AND e.caseName='%s' AND n2.isDenialWord='%s' AND n2ext.nodeName='%s' RETURN n1, e, n2ext".format(nodeType, nodeType, sourceNode.predicateArgumentStructure.surface, edge.caseStr, destinationNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.normalizedName)
+        logger.debug(querySourceOnly)
+        val jsonStr: String = neo4JUtils.getCypherQueryResult(querySourceOnly, "", transversalState)
+        //If there is even one that does not match, it is useless to search further
+        if (!jsonStr.equals("""{"records":[]}""")) {
+          //ヒットするものがある場合
+          val neo4jRecords: Neo4jRecords = Json.parse(jsonStr).as[Neo4jRecords]
+          //Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
+          Option(getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
+        }else{
+          None
+        }
+      }else if(!coveredPropositionEdge.sourceNode.isConfirmed && coveredPropositionEdge.destinationNode.isConfirmed){
+        val sourceAlias = "n1ext"
+        val destinationAlias = "n2"
+        val queryTargetOnly = "MATCH (n1ext:SynonymNode)-[e1ext:SynonymEdge]-(n1:%s)-[e]->(n2:%s) WHERE n2.surface=\"%s\" AND e.caseName='%s' AND n1.isDenialWord='%s' AND n1ext.nodeName='%s' RETURN n1ext, e, n2".format(nodeType, nodeType, destinationNode.predicateArgumentStructure.surface, edge.caseStr, sourceNode.predicateArgumentStructure.isDenialWord, sourceNode.predicateArgumentStructure.normalizedName)
+        logger.debug(queryTargetOnly)
+        val jsonStr: String = neo4JUtils.getCypherQueryResult(queryTargetOnly, "", transversalState)
+        //If there is even one that does not match, it is useless to search further
+        if (!jsonStr.equals("""{"records":[]}""")) {
+          //ヒットするものがある場合
+          val neo4jRecords: Neo4jRecords = Json.parse(jsonStr).as[Neo4jRecords]
+          //Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
+          Option(getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
+        }else{
+          None
+        }
+      }else if(!coveredPropositionEdge.sourceNode.isConfirmed && !coveredPropositionEdge.destinationNode.isConfirmed){
+        val sourceAlias = "n1ext"
+        val destinationAlias = "n2ext"
+        val queryBothReplacement = "MATCH (n1ext:SynonymNode)-[e1ext:SynonymEdge]-(n1:%s)-[e]->(n2:%s)-[e2ext:SynonymEdge]-(n2ext:SynonymNode) WHERE e.caseName='%s' AND Not e1ext:LocalEdge AND Not e2ext:LocalEdge AND n1.isDenialWord='%s' AND n2.isDenialWord='%s' RETURN n1ext, e, n2ext".format(nodeType, nodeType, edge.caseStr, sourceNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.isDenialWord, sourceNode.predicateArgumentStructure.normalizedName, destinationNode.predicateArgumentStructure.normalizedName)
+              logger.debug(queryBothReplacement)
+        val jsonStr: String = neo4JUtils.getCypherQueryResult(queryBothReplacement, "", transversalState)
+        //If there is even one that does not match, it is useless to search further
+        if (!jsonStr.equals("""{"records":[]}""")) {
+          //ヒットするものがある場合
+          val neo4jRecords: Neo4jRecords = Json.parse(jsonStr).as[Neo4jRecords]
+          //Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
+          Option(getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
+        }else{
+          None
+        }
+      }else{
+        None
+      }    
+    }
   }
 
 
