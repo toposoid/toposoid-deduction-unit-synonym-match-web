@@ -232,7 +232,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
           //Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
           Option(getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
         }else{
-          None
+          Option(coveredPropositionEdge)
         }
       }else if(!coveredPropositionEdge.sourceNode.isConfirmed && coveredPropositionEdge.destinationNode.isConfirmed){
         val sourceAlias = "n1ext"
@@ -247,12 +247,12 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
           //Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
           Option(getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
         }else{
-          None
+          Option(coveredPropositionEdge)
         }
       }else if(!coveredPropositionEdge.sourceNode.isConfirmed && !coveredPropositionEdge.destinationNode.isConfirmed){
         val sourceAlias = "n1ext"
         val destinationAlias = "n2ext"
-        val queryBothReplacement = "MATCH (n1ext:SynonymNode)-[e1ext:SynonymEdge]-(n1:%s)-[e]->(n2:%s)-[e2ext:SynonymEdge]-(n2ext:SynonymNode) WHERE e.caseName='%s' AND Not e1ext:LocalEdge AND Not e2ext:LocalEdge AND n1.isDenialWord='%s' AND n2.isDenialWord='%s' RETURN n1ext, e, n2ext".format(nodeType, nodeType, edge.caseStr, sourceNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.isDenialWord, sourceNode.predicateArgumentStructure.normalizedName, destinationNode.predicateArgumentStructure.normalizedName)
+        val queryBothReplacement = "MATCH (n1ext:SynonymNode)-[e1ext:SynonymEdge]-(n1:%s)-[e]->(n2:%s)-[e2ext:SynonymEdge]-(n2ext:SynonymNode) WHERE e.caseName='%s' AND n1.isDenialWord='%s' AND n2.isDenialWord='%s' AND n1ext.nodeName='%s' AND n2ext.nodeName='%s' RETURN n1ext, e, n2ext".format(nodeType, nodeType, edge.caseStr, sourceNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.isDenialWord, sourceNode.predicateArgumentStructure.normalizedName, destinationNode.predicateArgumentStructure.normalizedName)
               logger.debug(queryBothReplacement)
         val jsonStr: String = neo4JUtils.getCypherQueryResult(queryBothReplacement, "", transversalState)
         //If there is even one that does not match, it is useless to search further
@@ -262,10 +262,10 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
           //Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
           Option(getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
         }else{
-          None
+          Option(coveredPropositionEdge)
         }
       }else{
-        None
+        Option(coveredPropositionEdge)
       }    
     }
   }
