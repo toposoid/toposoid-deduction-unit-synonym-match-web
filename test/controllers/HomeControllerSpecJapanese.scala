@@ -91,7 +91,7 @@ class HomeControllerSpecJapanese extends PlaySpec with BeforeAndAfter with Befor
       contentType(result) mustBe Some("application/json")
       val jsonResult: String = contentAsJson(result).toString()
       val verifyingEdgesList: List[VerifyingEdges] = Json.parse(jsonResult).as[List[VerifyingEdges]]
-      TestUtilsEx.checkMatchedBothSide(json = jsonResult, sentenceId = sentenceIdForInference1, verifyingEdgesList=verifyingEdgesList, correctSize=2)      
+      TestUtilsEx.checkMatchedBothSide(json = json, sentenceId = sentenceIdForInference1, verifyingEdgesList=verifyingEdgesList, correctSize=2)      
 
     }
   }

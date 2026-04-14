@@ -101,10 +101,11 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
         }        
       }
     }
-    aso.edgeList.filterNot(x => {
+    val hoge = aso.edgeList.filterNot(x => {
       val targetLink = Set(x.sourceId, x.destinationId)
       pairSetList.contains(targetLink)
     })
+    hoge
   }
 
   private def getMatchedKnowledgeNodes(
@@ -261,8 +262,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
       }
     }else{
       None
-    }
-    None
+    }    
   }
 
 
@@ -276,7 +276,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
     val combinedFuture: Future[List[Option[CoveredPropositionEdge]]] = Future.sequence(futures)
     val result = Await.result(combinedFuture, Duration.Inf)    
     result.flatten
-    
+
   }
 
   /**
