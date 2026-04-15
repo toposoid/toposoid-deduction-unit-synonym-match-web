@@ -101,11 +101,10 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
         }        
       }
     }
-    val hoge = aso.edgeList.filterNot(x => {
+    aso.edgeList.filterNot(x => {
       val targetLink = Set(x.sourceId, x.destinationId)
       pairSetList.contains(targetLink)
-    })
-    hoge
+    })    
   }
 
   private def getMatchedKnowledgeNodes(
