@@ -49,7 +49,7 @@ object TestUtilsEx {
       List.empty[PropositionRelation])
     TestUtils.registerData(knowledgeSentenceSetForParser, transversalState, addVectorFlag = false)
   }
-
+  /*
   def analyzeByBaseDeductionUnit(asosJson:String, transversalState: TransversalState):String = {
     val json = ToposoidUtils.callComponent(asosJson, conf.getString("TOPOSOID_DEDUCTION_UNIT1_HOST"), conf.getString("TOPOSOID_DEDUCTION_UNIT1_PORT"), "execute", transversalState)
     val verifyingEdges = Json.parse(json).as[List[VerifyingEdges]]
@@ -160,6 +160,6 @@ object TestUtilsEx {
       val coveredEdges = evalA.coveredPropositionEdges.filter(x => !x.destinationNode.isConfirmed && !x.sourceNode.isConfirmed)
       assert(coveredEdges.size == correctSize)
   }
-
+  */
 
 }
