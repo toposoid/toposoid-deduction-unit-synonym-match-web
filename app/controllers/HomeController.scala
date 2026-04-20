@@ -76,7 +76,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
             propositionId = aso.knowledgeBaseSemiGlobalNode.propositionId,
             sentenceId = aso.knowledgeBaseSemiGlobalNode.sentenceId,
             //coveredPropositionEdges = analyzeGraphKnowledge(DeductionUtils.getUnsettledEdges(aso), aso, transversalState)
-            coveredPropositionEdges = analyzeGraphKnowledge(getUnsettledEdges(aso), aso, transversalState)
+            coveredPropositionEdges = analyzeGraphKnowledge(DeductionUtils.getUnsettledEdges(aso), aso, transversalState)
           )
         }
       }
@@ -89,7 +89,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
       }
     }
   }
-
+  /*
   def getUnsettledEdges(aso:AnalyzedSentenceObject): List[KnowledgeBaseEdge] = {
     //TODO:ロジカルエッヂを省けてる？
     val pairSetList = aso.deductionResult.coveredPropositionEdges.foldLeft(List.empty[Set[String]]){
@@ -195,7 +195,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
     //val knowledgeBaseSideInfo = KnowledgeBaseSideInfo(propositionId = , sentenceId = , featureInfoList = List.empty[MatchedFeatureInfo])
     CoveredPropositionEdge(sourceNode = sourceNode, destinationNode = destinationNode)
   }
-
+  */
   private def analyzeEdge(edge:KnowledgeBaseEdge, aso:AnalyzedSentenceObject, transversalState:TransversalState):Option[CoveredPropositionEdge] = {
 
     val nodeMap: Map[String, KnowledgeBaseNode] =  aso.nodeMap    
@@ -205,8 +205,8 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
     val targetKey = edge.destinationId
     val sourceNode = nodeMap.get(sourceKey).get.asInstanceOf[KnowledgeBaseNode]
     val destinationNode = nodeMap.get(targetKey).get.asInstanceOf[KnowledgeBaseNode]
+    val deductionUnitName = conf.getString("TOPOSOID_DEDUCTION_UNIT_NAME")
     
-
     //sentenceIdも絞り込めるがどうするか？  
     val coveredPropositionEdges = aso.deductionResult.coveredPropositionEdges.filter(x => {
       x.sourceNode.terminalId.equals(sourceKey) && x.destinationNode.terminalId.equals(targetKey)
@@ -229,7 +229,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
           //ヒットするものがある場合
           val neo4jRecords: Neo4jRecords = Json.parse(jsonStr).as[Neo4jRecords]
           //Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
-          Option(getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
+          Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH, deductionUnitName))     
         }else{
           Option(coveredPropositionEdge)
         }
@@ -244,7 +244,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
           //ヒットするものがある場合
           val neo4jRecords: Neo4jRecords = Json.parse(jsonStr).as[Neo4jRecords]
           //Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
-          Option(getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
+          Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH, deductionUnitName))     
         }else{
           Option(coveredPropositionEdge)
         }
@@ -259,7 +259,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
           //ヒットするものがある場合
           val neo4jRecords: Neo4jRecords = Json.parse(jsonStr).as[Neo4jRecords]
           //Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
-          Option(getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH))     
+          Option(DeductionUtils.getCoveredPropositionEdge(edge, sourceAlias, destinationAlias, nodeMap,  neo4jRecords, RelationMatchState.MATCHED_BOTH, deductionUnitName))     
         }else{
           Option(coveredPropositionEdge)
         }
