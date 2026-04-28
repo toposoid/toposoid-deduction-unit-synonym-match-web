@@ -44,8 +44,9 @@ import com.ideal.linked.toposoid.protocol.model.base.MatchedKnowledgeNode
 import com.ideal.linked.toposoid.knowledgebase.model.KnowledgeFeatureReference
 import com.ideal.linked.toposoid.knowledgebase.model.KnowledgeBaseSynonymNode
 import com.ideal.linked.common.DeploymentConverter.conf
+import com.ideal.linked.toposoid.common.DeductionQuery
 
-case class DeductionQuery(query:String,relationMatchState:RelationMatchState, sourceAlias:String, destinationAlias:String,isSourceConfirmed:Boolean, isDestinationConfirmed:Boolean)
+//case class DeductionQuery(query:String,relationMatchState:RelationMatchState, sourceAlias:String, destinationAlias:String,isSourceConfirmed:Boolean, isDestinationConfirmed:Boolean)
 
 /**
  * This controller creates an `Action` to determine if the text you enter matches, provided that the knowledge graph and synonyms are equated.
@@ -72,7 +73,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
             propositionId = aso.knowledgeBaseSemiGlobalNode.propositionId,
             sentenceId = aso.knowledgeBaseSemiGlobalNode.sentenceId,
             //coveredPropositionEdges = analyzeGraphKnowledge(DeductionUtils.getUnsettledEdges(aso), aso, transversalState)
-            coveredPropositionEdges = analyzeGraphKnowledge(getQeuries, DeductionUtils.getUnsettledEdges(aso), aso, transversalState)
+            coveredPropositionEdges = DeductionUtils.analyzeGraphKnowledge(getQeuries, aso, transversalState)
           )
         }
       }
@@ -90,7 +91,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
   //Featureの対象が動詞なのか、名詞なのかでクエリを否定するのを入れるか入れないかを決めれば良いのでは？
   //現在、Surfaceが両方含むケースがあるのでそれが問題。
   
-  private def getQeuries(edge:KnowledgeBaseEdge, nodeMap:Map[String, KnowledgeBaseNode]):List[DeductionQuery] = {
+  private def getQeuries(edge:KnowledgeBaseEdge, nodeMap:Map[String, KnowledgeBaseNode], transversalState:TransversalState):List[DeductionQuery] = {
     val sourceKey = edge.sourceId
     val targetKey = edge.destinationId
     val sourceNode = nodeMap.get(sourceKey).get.asInstanceOf[KnowledgeBaseNode]
@@ -134,7 +135,8 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
         )      
       }
   }
-
+}
+/*
   private def analyzeGraphKnowledge(getQeuries:(KnowledgeBaseEdge, Map[String, KnowledgeBaseNode]) => List[DeductionQuery], edges: List[KnowledgeBaseEdge], aso:AnalyzedSentenceObject, transversalState:TransversalState):List[CoveredPropositionEdge] = {    
     val futures: List[Future[Option[CoveredPropositionEdge]]] = edges.foldLeft(List.empty[Future[Option[CoveredPropositionEdge]]]){
       (acc, edge) => {
@@ -243,7 +245,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
     }
   }
 }
-
+*/
   /*
   private def analyzeEdge(edge:KnowledgeBaseEdge, aso:AnalyzedSentenceObject, transversalState:TransversalState):Option[CoveredPropositionEdge] = {
 
