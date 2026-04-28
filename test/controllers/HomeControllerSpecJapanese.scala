@@ -164,8 +164,41 @@ class HomeControllerSpecJapanese extends PlaySpec with BeforeAndAfter with Befor
       TestUtils.checkNoMatch(json = json, sentenceId = sentenceIdForInference1, verifyingEdgesList=verifyingEdgesList, correctSize=0)  
     }
   }
-  //両側対象、片側のみ一致
-  "The specification4" should {
+  //両側対象、片側のみ一致その1
+  "The specification4a" should {
+    "returns an appropriate response" in {
+      val sentence1 = "太郎はある調査を進めてきた。"
+      val paraphrase1 = "太郎はある分析を深めてきた。"
+      
+      val propositionId1 = java.util.UUID.randomUUID().toString
+      val sentenceId1 = java.util.UUID.randomUUID().toString
+      val knowledge1 = Knowledge(sentence1,"ja_JP", "{}", false)
+      val paraphraseKnowledge1 = Knowledge(paraphrase1,"ja_JP", "{}", false)
+      TestUtilsEx.registerSingleClaim(KnowledgeForParser(propositionId1, sentenceId1, knowledge1), transversalState)
+      val propositionIdForInference1 = java.util.UUID.randomUUID().toString
+      val sentenceIdForInference1 = java.util.UUID.randomUUID().toString
+      val premiseKnowledge = List.empty[KnowledgeForParser]
+      val claimKnowledge = List(KnowledgeForParser(propositionIdForInference1, sentenceIdForInference1, paraphraseKnowledge1))
+      val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge, ActionModeType.DEDUCTION_MODE.index)).toString()
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_JP_WEB_PORT"), "analyze", transversalState)
+      val updatedAsosJson = TestUtils.analyzeByBaseDeductionUnit(json, transversalState)
+      val fr = FakeRequest(POST, "/execute")
+        .withHeaders("Content-type" -> "application/json", TRANSVERSAL_STATE.str -> transversalStateJson)
+        .withJsonBody(Json.parse(updatedAsosJson))
+      val result = call(controller.execute(), fr)
+      status(result) mustBe OK
+      contentType(result) mustBe Some("application/json")
+      val jsonResult: String = contentAsJson(result).toString()
+      val verifyingEdgesList: List[VerifyingEdges] = Json.parse(jsonResult).as[List[VerifyingEdges]]
+      assert(verifyingEdgesList.map(x => x.coveredPropositionEdges.size).sum == 3)      
+      TestUtils.checkMatchedBothSide(json = json, sentenceId = sentenceIdForInference1, verifyingEdgesList=verifyingEdgesList, correctSize=1)   
+      TestUtils.checkMatchedOneSide(json = json, sentenceId = sentenceIdForInference1, verifyingEdgesList=verifyingEdgesList, correctSize=2)         
+      TestUtils.checkNoMatch(json = json, sentenceId = sentenceIdForInference1, verifyingEdgesList=verifyingEdgesList, correctSize=0)
+    }
+  }
+
+  //両側対象、片側のみ一致その2
+  "The specification4b" should {
     "returns an appropriate response" in {
       val sentence1 = "太郎はある調査を進めてきた。"
       val paraphrase1 = "太郎はある考察を推し進めてきた。"
@@ -192,8 +225,8 @@ class HomeControllerSpecJapanese extends PlaySpec with BeforeAndAfter with Befor
       val verifyingEdgesList: List[VerifyingEdges] = Json.parse(jsonResult).as[List[VerifyingEdges]]
       assert(verifyingEdgesList.map(x => x.coveredPropositionEdges.size).sum == 3)      
       TestUtils.checkMatchedBothSide(json = json, sentenceId = sentenceIdForInference1, verifyingEdgesList=verifyingEdgesList, correctSize=1)   
-      TestUtils.checkMatchedOneSide(json = json, sentenceId = sentenceIdForInference1, verifyingEdgesList=verifyingEdgesList, correctSize=1)         
-      TestUtils.checkNoMatch(json = json, sentenceId = sentenceIdForInference1, verifyingEdgesList=verifyingEdgesList, correctSize=1)
+      TestUtils.checkMatchedOneSide(json = json, sentenceId = sentenceIdForInference1, verifyingEdgesList=verifyingEdgesList, correctSize=2)         
+      TestUtils.checkNoMatch(json = json, sentenceId = sentenceIdForInference1, verifyingEdgesList=verifyingEdgesList, correctSize=0)
     }
   }
 

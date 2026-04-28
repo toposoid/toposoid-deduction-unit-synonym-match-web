@@ -97,9 +97,16 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
     val sourceNode = nodeMap.get(sourceKey).get.asInstanceOf[KnowledgeBaseNode]
     val destinationNode = nodeMap.get(targetKey).get.asInstanceOf[KnowledgeBaseNode]
     val nodeType: String = ToposoidUtils.getNodeType(SentenceType.CLAIM.index, ScopeType.LOCAL.index, FeatureType.PREDICATE_ARGUMENT.index)
+    //SourceSideがすでにOKの場合 
     val query1 = "MATCH (n1:%s)-[e]->(n2:%s)-[e2ext:SynonymEdge]-(n2ext:SynonymNode) WHERE n1.surface=\"%s\" AND e.caseName='%s' AND n2.isDenialWord='%s' AND n2ext.nodeName=\"%s\" RETURN n1, e, n2ext".format(nodeType, nodeType, sourceNode.predicateArgumentStructure.surface, edge.caseStr, destinationNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.normalizedName)
+    //DestinationSideがすでにOKの場合
     val query2 = "MATCH (n1ext:SynonymNode)-[e1ext:SynonymEdge]-(n1:%s)-[e]->(n2:%s) WHERE n2.surface=\"%s\" AND e.caseName='%s' AND n1.isDenialWord='%s' AND n1ext.nodeName=\"%s\" RETURN n1ext, e, n2".format(nodeType, nodeType, destinationNode.predicateArgumentStructure.surface, edge.caseStr, sourceNode.predicateArgumentStructure.isDenialWord, sourceNode.predicateArgumentStructure.normalizedName)
+    //両サイドともOKでない場合かつ、両サイド結果としてOKになる場合
     val query3 = "MATCH (n1ext:SynonymNode)-[e1ext:SynonymEdge]-(n1:%s)-[e]->(n2:%s)-[e2ext:SynonymEdge]-(n2ext:SynonymNode) WHERE e.caseName='%s' AND n1.isDenialWord='%s' AND n2.isDenialWord='%s' AND n1ext.nodeName=\"%s\" AND n2ext.nodeName=\"%s\" RETURN n1ext, e, n2ext".format(nodeType, nodeType, edge.caseStr, sourceNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.isDenialWord, sourceNode.predicateArgumentStructure.normalizedName, destinationNode.predicateArgumentStructure.normalizedName)
+    //両サイドともOKでない場合かつ、Sourceのみ結果としてOKになる場合
+    val query4 = "MATCH (n1ext:SynonymNode)-[e1ext:SynonymEdge]-(n1:%s)-[e]->(n2:%s)-[e2ext:SynonymEdge]-(n2ext:SynonymNode) WHERE e.caseName='%s' AND n1.isDenialWord='%s' AND n2.isDenialWord='%s' AND n1ext.nodeName=\"%s\" RETURN n1ext, e, n2".format(nodeType, nodeType, edge.caseStr, sourceNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.isDenialWord, sourceNode.predicateArgumentStructure.normalizedName)
+    //両サイドともOKでない場合かつ、Destinationのみ結果としてOKになる場合
+    val query5 = "MATCH (n1ext:SynonymNode)-[e1ext:SynonymEdge]-(n1:%s)-[e]->(n2:%s)-[e2ext:SynonymEdge]-(n2ext:SynonymNode) WHERE e.caseName='%s' AND n1.isDenialWord='%s' AND n2.isDenialWord='%s' AND n2ext.nodeName=\"%s\" RETURN n1ext, e, n2ext".format(nodeType, nodeType, edge.caseStr, sourceNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.normalizedName)
 
     val haveFeatureOnSource = sourceNode.localContext.knowledgeFeatureReferences.filter(x => List(FeatureType.IMAGE.index, FeatureType.TABLE.index).contains(x.featureType)).size > 0
     val haveFeatureOnDestination = destinationNode.localContext.knowledgeFeatureReferences.filter(x => List(FeatureType.IMAGE.index, FeatureType.TABLE.index).contains(x.featureType)).size > 0
@@ -111,6 +118,8 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
           DeductionQuery(query1, RelationMatchState.MATCHED_BOTH, "n1", "n2ext", true, false),
           DeductionQuery(query2, RelationMatchState.MATCHED_BOTH, "n1ext", "n2", false, true),
           DeductionQuery(query3, RelationMatchState.MATCHED_BOTH, "n1ext", "n2ext", false, false),
+          DeductionQuery(query4, RelationMatchState.MATCHED_SOURCE_NODE_ONLY, "n1ext", "n2", false, false),
+          DeductionQuery(query5, RelationMatchState.MATCHED_TARGET_NODE_ONLY, "n1", "n2ext", false, false)
         )      
       }
       case (true, true) => {
@@ -118,20 +127,27 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
           DeductionQuery(query1, RelationMatchState.NOT_MATCHED_BOTH, "n1", "n2ext", true, false),
           DeductionQuery(query2, RelationMatchState.NOT_MATCHED_BOTH, "n1ext", "n2", false, true),
           DeductionQuery(query3, RelationMatchState.NOT_MATCHED_BOTH, "n1ext", "n2ext", false, false),
+          DeductionQuery(query4, RelationMatchState.NOT_MATCHED_BOTH, "n1ext", "n2", false, false),
+          DeductionQuery(query5, RelationMatchState.NOT_MATCHED_BOTH, "n1", "n2ext", false, false)
         )      
       }
       case (true, false) => {
         List(
           DeductionQuery(query1, RelationMatchState.MATCHED_TARGET_NODE_ONLY, "n1", "n2ext", true, false),
-          DeductionQuery(query2, RelationMatchState.NOT_MATCHED_BOTH, "n1ext", "n2", false, true),
+          DeductionQuery(query2, RelationMatchState.MATCHED_TARGET_NODE_ONLY, "n1ext", "n2", false, true),
           DeductionQuery(query3, RelationMatchState.MATCHED_TARGET_NODE_ONLY, "n1ext", "n2ext", false, false),
+          DeductionQuery(query4, RelationMatchState.NOT_MATCHED_BOTH, "n1ext", "n2", false, false),
+          DeductionQuery(query5, RelationMatchState.MATCHED_TARGET_NODE_ONLY, "n1", "n2ext", false, false)
+
         )      
       }
       case (false, true) => {
         List(
           DeductionQuery(query1, RelationMatchState.MATCHED_SOURCE_NODE_ONLY, "n1", "n2ext", true, false),
           DeductionQuery(query2, RelationMatchState.MATCHED_SOURCE_NODE_ONLY, "n1ext", "n2", false, true),
-          DeductionQuery(query3, RelationMatchState.NOT_MATCHED_BOTH, "n1ext", "n2ext", false, false),
+          DeductionQuery(query3, RelationMatchState.MATCHED_SOURCE_NODE_ONLY, "n1ext", "n2ext", false, false),
+          DeductionQuery(query4, RelationMatchState.MATCHED_SOURCE_NODE_ONLY, "n1ext", "n2", false, false),
+          DeductionQuery(query5, RelationMatchState.NOT_MATCHED_BOTH, "n1", "n2ext", false, false)
         )      
       }
   }
