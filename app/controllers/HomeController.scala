@@ -91,22 +91,33 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
   //Featureの対象が動詞なのか、名詞なのかでクエリを否定するのを入れるか入れないかを決めれば良いのでは？
   //現在、Surfaceが両方含むケースがあるのでそれが問題。
   
-  private def getQeuries(edge:KnowledgeBaseEdge, nodeMap:Map[String, KnowledgeBaseNode], transversalState:TransversalState):List[DeductionQuery] = {
+  private def getQeuries(edge:KnowledgeBaseEdge, aso:AnalyzedSentenceObject, transversalState:TransversalState):List[DeductionQuery] = {
+    
+    val sentenceIds = aso.deductionResult.coveredPropositionEdges.foldLeft(List.empty[String]){
+      (acc, x) =>
+        acc ++ x.sourceNode.matchedKnowledgeNodes.map(y => "'" + y.sentenceId + "'")
+    }.distinct
+
+    val sentenceIdFilterQuery = sentenceIds.size match {
+      case 0 => ""
+      case _ => "AND n1.sentenceId IN [%s]".format(sentenceIds.mkString(","))
+    }
+    
     val sourceKey = edge.sourceId
     val targetKey = edge.destinationId
-    val sourceNode = nodeMap.get(sourceKey).get.asInstanceOf[KnowledgeBaseNode]
-    val destinationNode = nodeMap.get(targetKey).get.asInstanceOf[KnowledgeBaseNode]
+    val sourceNode = aso.nodeMap.get(sourceKey).get.asInstanceOf[KnowledgeBaseNode]
+    val destinationNode = aso.nodeMap.get(targetKey).get.asInstanceOf[KnowledgeBaseNode]
     val nodeType: String = ToposoidUtils.getNodeType(SentenceType.CLAIM.index, ScopeType.LOCAL.index, FeatureType.PREDICATE_ARGUMENT.index)
     //SourceSideがすでにOKの場合 
-    val query1 = "MATCH (n1:%s)-[e]->(n2:%s)-[e2ext:SynonymEdge]-(n2ext:SynonymNode) WHERE n1.surface=\"%s\" AND e.caseName='%s' AND n2.isDenialWord='%s' AND n2ext.nodeName=\"%s\" RETURN n1, e, n2ext".format(nodeType, nodeType, sourceNode.predicateArgumentStructure.surface, edge.caseStr, destinationNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.normalizedName)
+    val query1 = "MATCH (n1:%s)-[e]->(n2:%s)-[e2ext:SynonymEdge]-(n2ext:SynonymNode) WHERE n1.surface=\"%s\" AND e.caseName='%s' AND n2.isDenialWord='%s' AND n2ext.nodeName=\"%s\" %s RETURN n1, e, n2ext".format(nodeType, nodeType, sourceNode.predicateArgumentStructure.surface, edge.caseStr, destinationNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.normalizedName, sentenceIdFilterQuery)
     //DestinationSideがすでにOKの場合
-    val query2 = "MATCH (n1ext:SynonymNode)-[e1ext:SynonymEdge]-(n1:%s)-[e]->(n2:%s) WHERE n2.surface=\"%s\" AND e.caseName='%s' AND n1.isDenialWord='%s' AND n1ext.nodeName=\"%s\" RETURN n1ext, e, n2".format(nodeType, nodeType, destinationNode.predicateArgumentStructure.surface, edge.caseStr, sourceNode.predicateArgumentStructure.isDenialWord, sourceNode.predicateArgumentStructure.normalizedName)
+    val query2 = "MATCH (n1ext:SynonymNode)-[e1ext:SynonymEdge]-(n1:%s)-[e]->(n2:%s) WHERE n2.surface=\"%s\" AND e.caseName='%s' AND n1.isDenialWord='%s' AND n1ext.nodeName=\"%s\" %s RETURN n1ext, e, n2".format(nodeType, nodeType, destinationNode.predicateArgumentStructure.surface, edge.caseStr, sourceNode.predicateArgumentStructure.isDenialWord, sourceNode.predicateArgumentStructure.normalizedName, sentenceIdFilterQuery)
     //両サイドともOKでない場合かつ、両サイド結果としてOKになる場合
-    val query3 = "MATCH (n1ext:SynonymNode)-[e1ext:SynonymEdge]-(n1:%s)-[e]->(n2:%s)-[e2ext:SynonymEdge]-(n2ext:SynonymNode) WHERE e.caseName='%s' AND n1.isDenialWord='%s' AND n2.isDenialWord='%s' AND n1ext.nodeName=\"%s\" AND n2ext.nodeName=\"%s\" RETURN n1ext, e, n2ext".format(nodeType, nodeType, edge.caseStr, sourceNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.isDenialWord, sourceNode.predicateArgumentStructure.normalizedName, destinationNode.predicateArgumentStructure.normalizedName)
+    val query3 = "MATCH (n1ext:SynonymNode)-[e1ext:SynonymEdge]-(n1:%s)-[e]->(n2:%s)-[e2ext:SynonymEdge]-(n2ext:SynonymNode) WHERE e.caseName='%s' AND n1.isDenialWord='%s' AND n2.isDenialWord='%s' AND n1ext.nodeName=\"%s\" AND n2ext.nodeName=\"%s\" %s RETURN n1ext, e, n2ext".format(nodeType, nodeType, edge.caseStr, sourceNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.isDenialWord, sourceNode.predicateArgumentStructure.normalizedName, destinationNode.predicateArgumentStructure.normalizedName, sentenceIdFilterQuery)
     //両サイドともOKでない場合かつ、Sourceのみ結果としてOKになる場合
-    val query4 = "MATCH (n1ext:SynonymNode)-[e1ext:SynonymEdge]-(n1:%s)-[e]->(n2:%s)-[e2ext:SynonymEdge]-(n2ext:SynonymNode) WHERE e.caseName='%s' AND n1.isDenialWord='%s' AND n2.isDenialWord='%s' AND n1ext.nodeName=\"%s\" RETURN n1ext, e, n2".format(nodeType, nodeType, edge.caseStr, sourceNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.isDenialWord, sourceNode.predicateArgumentStructure.normalizedName)
+    val query4 = "MATCH (n1ext:SynonymNode)-[e1ext:SynonymEdge]-(n1:%s)-[e]->(n2:%s)-[e2ext:SynonymEdge]-(n2ext:SynonymNode) WHERE e.caseName='%s' AND n1.isDenialWord='%s' AND n2.isDenialWord='%s' AND n1ext.nodeName=\"%s\" %s RETURN n1ext, e, n2".format(nodeType, nodeType, edge.caseStr, sourceNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.isDenialWord, sourceNode.predicateArgumentStructure.normalizedName, sentenceIdFilterQuery)
     //両サイドともOKでない場合かつ、Destinationのみ結果としてOKになる場合
-    val query5 = "MATCH (n1ext:SynonymNode)-[e1ext:SynonymEdge]-(n1:%s)-[e]->(n2:%s)-[e2ext:SynonymEdge]-(n2ext:SynonymNode) WHERE e.caseName='%s' AND n1.isDenialWord='%s' AND n2.isDenialWord='%s' AND n2ext.nodeName=\"%s\" RETURN n1ext, e, n2ext".format(nodeType, nodeType, edge.caseStr, sourceNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.normalizedName)
+    val query5 = "MATCH (n1ext:SynonymNode)-[e1ext:SynonymEdge]-(n1:%s)-[e]->(n2:%s)-[e2ext:SynonymEdge]-(n2ext:SynonymNode) WHERE e.caseName='%s' AND n1.isDenialWord='%s' AND n2.isDenialWord='%s' AND n2ext.nodeName=\"%s\" %s RETURN n1ext, e, n2ext".format(nodeType, nodeType, edge.caseStr, sourceNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.isDenialWord, destinationNode.predicateArgumentStructure.normalizedName, sentenceIdFilterQuery)
 
     val haveFeatureOnSource = sourceNode.localContext.knowledgeFeatureReferences.filter(x => List(FeatureType.IMAGE.index, FeatureType.TABLE.index).contains(x.featureType)).size > 0
     val haveFeatureOnDestination = destinationNode.localContext.knowledgeFeatureReferences.filter(x => List(FeatureType.IMAGE.index, FeatureType.TABLE.index).contains(x.featureType)).size > 0
