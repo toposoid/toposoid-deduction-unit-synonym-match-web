@@ -324,7 +324,40 @@ class HomeControllerSpecEnglish extends PlaySpec with BeforeAndAfter with Before
       TestUtils.checkNoMatch(json = json, sentenceId = sentenceIdForInference1, verifyingEdgesList=verifyingEdgesList, correctSize=1)  
     }
   }  
-  
+
+  //全て被覆できないケース
+  "The specification8" should {
+    "returns an appropriate response" in {
+      val sentence1 = "You can see a building."      
+      val paraphrase1 = "You can see the edifice."
+      
+      val propositionId1 = java.util.UUID.randomUUID().toString
+      val sentenceId1 = java.util.UUID.randomUUID().toString
+      val knowledge1 = Knowledge(sentence1,"en_US", "{}", false)
+      val paraphraseKnowledge1 = Knowledge(paraphrase1,"en_US", "{}", false)
+      TestUtilsEx.registerSingleClaim(KnowledgeForParser(propositionId1, sentenceId1, knowledge1), transversalState)
+      val propositionIdForInference1 = java.util.UUID.randomUUID().toString
+      val sentenceIdForInference1 = java.util.UUID.randomUUID().toString
+      val premiseKnowledge = List.empty[KnowledgeForParser]
+      val claimKnowledge = List(KnowledgeForParser(propositionIdForInference1, sentenceIdForInference1, paraphraseKnowledge1))
+      val inputSentence = Json.toJson(InputSentenceForParser(premiseKnowledge, claimKnowledge, ActionModeType.DEDUCTION_MODE.index)).toString()
+      val json = ToposoidUtils.callComponent(inputSentence, conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_HOST"), conf.getString("TOPOSOID_SENTENCE_PARSER_EN_WEB_PORT"), "analyze", transversalState)
+      val updatedAsosJson = TestUtils.analyzeByBaseDeductionUnit(json, transversalState)
+      val fr = FakeRequest(POST, "/execute")
+        .withHeaders("Content-type" -> "application/json", TRANSVERSAL_STATE.str -> transversalStateJson)
+        .withJsonBody(Json.parse(updatedAsosJson))
+      val result = call(controller.execute(), fr)
+      status(result) mustBe OK
+      contentType(result) mustBe Some("application/json")
+      val jsonResult: String = contentAsJson(result).toString()
+      val verifyingEdgesList: List[VerifyingEdges] = Json.parse(jsonResult).as[List[VerifyingEdges]]
+      assert(verifyingEdgesList.map(x => x.coveredPropositionEdges.size).sum == 2)
+      TestUtils.checkMatchedBothSide(json = json, sentenceId = sentenceIdForInference1, verifyingEdgesList=verifyingEdgesList, correctSize=2)  
+      TestUtils.checkMatchedOneSide(json = json, sentenceId = sentenceIdForInference1, verifyingEdgesList=verifyingEdgesList, correctSize=0)  
+      TestUtils.checkNoMatch(json = json, sentenceId = sentenceIdForInference1, verifyingEdgesList=verifyingEdgesList, correctSize=0)  
+    }
+  }  
+
   /*
   "The specification5" should {
     "returns an appropriate response" in {
