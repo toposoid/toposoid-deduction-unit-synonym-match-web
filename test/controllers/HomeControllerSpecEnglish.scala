@@ -325,11 +325,11 @@ class HomeControllerSpecEnglish extends PlaySpec with BeforeAndAfter with Before
     }
   }  
 
-  //全て被覆できないケース
+  //冠詞の違いを吸収するパターン
   "The specification8" should {
     "returns an appropriate response" in {
       val sentence1 = "You can see a building."      
-      val paraphrase1 = "You can see the edifice."
+      val paraphrase1 = "You can see the edifice." //両方にover thereをつけると挙動が変わる
       
       val propositionId1 = java.util.UUID.randomUUID().toString
       val sentenceId1 = java.util.UUID.randomUUID().toString
