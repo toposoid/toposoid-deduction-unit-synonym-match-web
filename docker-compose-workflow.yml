@@ -32,7 +32,7 @@ services:
       - PLAY_HTTP_PORT=9005
     ports:
       - 9005:9005
-    depends on:
+    depends_on:
       - neo4j
 
   neo4j:
@@ -83,7 +83,7 @@ services:
       - TOPOSOID_PARSER_SPACY_MODEL_EN=en_core_web_md
     ports:
       - 9007:9007
-    depends on:
+    depends_on:
       - corenlp
   toposoid-common-nlp-english-web:
     image: toposoid/toposoid-common-nlp-english-web:0.7-SNAPSHOT-lowspec
